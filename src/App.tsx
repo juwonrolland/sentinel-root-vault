@@ -4,6 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import SecurityDashboard from "./pages/SecurityDashboard";
+import ThreatDetection from "./pages/ThreatDetection";
+import AccessControl from "./pages/AccessControl";
+import SentimentAnalysis from "./pages/SentimentAnalysis";
+import IncidentResponse from "./pages/IncidentResponse";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,6 +23,13 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/security-dashboard" element={<SecurityDashboard />} />
+          <Route path="/threat-detection" element={<ThreatDetection />} />
+          <Route path="/access-control" element={<AccessControl />} />
+          <Route path="/sentiment-analysis" element={<SentimentAnalysis />} />
+          <Route path="/incident-response" element={<IncidentResponse />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
