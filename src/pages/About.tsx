@@ -113,7 +113,7 @@ export default function About() {
               <h2 className="text-2xl font-bold mb-4">Contact Us</h2>
               <div className="space-y-2 text-muted-foreground">
                 <p>Email: gloriousglobaltechbrand@gmail.com</p>
-                <p>Phone: +23462121452</p>
+                <p>Phone: +2348062121452</p>
                 <p>Business Hours: Monday - Friday, 9:00 AM - 6:00 PM (UTC)</p>
               </div>
             </section>

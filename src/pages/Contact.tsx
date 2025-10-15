@@ -107,7 +107,7 @@ export default function Contact() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">+23462121452</p>
+                <p className="text-muted-foreground">+2348062121452</p>
                 <p className="text-sm text-muted-foreground mt-1">Monday - Friday, 9:00 AM - 6:00 PM UTC</p>
               </CardContent>
             </Card>

@@ -88,7 +88,7 @@ export default function TermsOfService() {
               <h2 className="text-2xl font-bold text-foreground mb-4">10. Contact Information</h2>
               <p>For questions about these Terms of Service, contact us at:</p>
               <p className="mt-2">Email: gloriousglobaltechbrand@gmail.com</p>
-              <p>Phone: +23462121452</p>
+              <p>Phone: +2348062121452</p>
             </section>
           </CardContent>
         </Card>
