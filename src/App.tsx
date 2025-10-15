@@ -14,6 +14,10 @@ import IncidentResponse from "./pages/IncidentResponse";
 import SystemHealth from "./pages/SystemHealth";
 import ComplianceReports from "./pages/ComplianceReports";
 import Notifications from "./pages/Notifications";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +40,10 @@ const App = () => (
           <Route path="/system-health" element={<SystemHealth />} />
           <Route path="/compliance-reports" element={<ComplianceReports />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

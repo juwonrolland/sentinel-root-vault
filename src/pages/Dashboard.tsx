@@ -180,6 +180,18 @@ const Dashboard = () => {
             </Link>
           ))}
         </div>
+
+        <footer className="mt-12 pt-8 border-t">
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
+            <Link to="/about" className="hover:text-foreground transition-colors">About Us</Link>
+            <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+            <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-foreground transition-colors">Terms of Service</Link>
+          </div>
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            © {new Date().getFullYear()} Glorious Global Technology. All rights reserved.
+          </p>
+        </footer>
       </main>
     </div>
   );
