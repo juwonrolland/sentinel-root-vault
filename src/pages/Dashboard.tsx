@@ -5,7 +5,6 @@ import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Shield, 
   AlertTriangle, 
   Lock, 
   MessageSquare, 
@@ -16,6 +15,7 @@ import {
   Bell
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -52,7 +52,7 @@ const Dashboard = () => {
     {
       title: "Security Dashboard",
       description: "Real-time monitoring of system health and access patterns",
-      icon: Shield,
+      icon: Activity,
       path: "/security-dashboard",
       color: "text-blue-500"
     },
@@ -112,7 +112,7 @@ const Dashboard = () => {
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Shield className="h-8 w-8 text-primary" />
+            <img src={logo} alt="Glorious Global Technology" className="h-12 w-12" />
             <h1 className="text-2xl font-bold">Glorious Global Security Intelligence Platform</h1>
           </div>
           <Button onClick={handleSignOut} variant="outline">Sign Out</Button>
