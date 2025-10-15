@@ -95,8 +95,7 @@ export default function Contact() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">contact@gloriousglobal.tech</p>
-                <p className="text-muted-foreground">support@gloriousglobal.tech</p>
+                <p className="text-muted-foreground">gloriousglobaltechbrand@gmail.com</p>
               </CardContent>
             </Card>
 
@@ -108,7 +107,7 @@ export default function Contact() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                <p className="text-muted-foreground">+23462121452</p>
                 <p className="text-sm text-muted-foreground mt-1">Monday - Friday, 9:00 AM - 6:00 PM UTC</p>
               </CardContent>
             </Card>
