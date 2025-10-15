@@ -37,7 +37,7 @@ export default function SystemHealth() {
 
   const loadMetrics = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("system_health")
         .select("*")
         .order("recorded_at", { ascending: false })

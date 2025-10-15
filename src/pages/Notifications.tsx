@@ -37,7 +37,7 @@ export default function Notifications() {
 
   const loadNotifications = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("notifications")
         .select("*")
         .order("created_at", { ascending: false });
@@ -82,7 +82,7 @@ export default function Notifications() {
 
   const markAsRead = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("notifications")
         .update({ read: true })
         .eq("id", id);
@@ -98,7 +98,7 @@ export default function Notifications() {
   const markAllAsRead = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("notifications")
         .update({ read: true })
         .eq("user_id", session?.user?.id)
