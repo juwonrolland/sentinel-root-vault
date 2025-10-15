@@ -12,7 +12,8 @@ import {
   FileText,
   Activity,
   TrendingUp,
-  Users
+  Users,
+  Bell
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -82,6 +83,27 @@ const Dashboard = () => {
       icon: FileText,
       path: "/incident-response",
       color: "text-orange-500"
+    },
+    {
+      title: "System Health",
+      description: "Monitor system performance and uptime metrics",
+      icon: TrendingUp,
+      path: "/system-health",
+      color: "text-cyan-500"
+    },
+    {
+      title: "Compliance Reports",
+      description: "Generate GDPR, HIPAA, and SOC2 compliance documentation",
+      icon: FileText,
+      path: "/compliance-reports",
+      color: "text-indigo-500"
+    },
+    {
+      title: "Notifications",
+      description: "Real-time system alerts and security updates",
+      icon: Bell,
+      path: "/notifications",
+      color: "text-yellow-500"
     }
   ];
 

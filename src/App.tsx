@@ -11,6 +11,9 @@ import ThreatDetection from "./pages/ThreatDetection";
 import AccessControl from "./pages/AccessControl";
 import SentimentAnalysis from "./pages/SentimentAnalysis";
 import IncidentResponse from "./pages/IncidentResponse";
+import SystemHealth from "./pages/SystemHealth";
+import ComplianceReports from "./pages/ComplianceReports";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +33,9 @@ const App = () => (
           <Route path="/access-control" element={<AccessControl />} />
           <Route path="/sentiment-analysis" element={<SentimentAnalysis />} />
           <Route path="/incident-response" element={<IncidentResponse />} />
+          <Route path="/system-health" element={<SystemHealth />} />
+          <Route path="/compliance-reports" element={<ComplianceReports />} />
+          <Route path="/notifications" element={<Notifications />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
