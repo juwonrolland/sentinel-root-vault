@@ -128,8 +128,8 @@ const SentimentAnalysis = () => {
           </Link>
           <Shield className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-2xl font-bold">Forensic NLP Security Analysis</h1>
-            <p className="text-sm text-muted-foreground">Comprehensive contextual threat detection & sentiment analysis</p>
+            <h1 className="text-2xl font-bold">Advanced Forensic NLP Security Analysis</h1>
+            <p className="text-sm text-muted-foreground">Professional-grade contextual threat detection & sentiment analysis</p>
           </div>
         </div>
       </header>
@@ -172,16 +172,16 @@ const SentimentAnalysis = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
-                Forensic Analysis Input
+                Professional Forensic Analysis
               </CardTitle>
-              <CardDescription>AI-powered comprehensive security & sentiment analysis</CardDescription>
+              <CardDescription>Advanced automated comprehensive security & sentiment analysis</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="content">Text Content for Analysis</Label>
                 <Textarea
                   id="content"
-                  placeholder="Enter text, communications, documents, or any content for comprehensive forensic NLP analysis, sentiment detection, security threat assessment, copyright violation detection, and malicious intent identification..."
+                  placeholder="Enter text, communications, documents, or any content for professional-grade forensic NLP analysis including: sentiment detection, advanced security threat assessment, copyright violation detection, malicious intent identification, social engineering pattern analysis, and data breach risk evaluation..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={12}
@@ -243,7 +243,7 @@ const SentimentAnalysis = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5" />
-                Latest Forensic Analysis Results
+                Latest Professional Analysis Results
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -317,7 +317,7 @@ const SentimentAnalysis = () => {
         <Card>
           <CardHeader>
             <CardTitle>Historical Analysis Results</CardTitle>
-            <CardDescription>Recent forensic NLP security analyses</CardDescription>
+            <CardDescription>Recent professional forensic NLP security analyses</CardDescription>
           </CardHeader>
           <CardContent>
             {analyses.length === 0 ? (

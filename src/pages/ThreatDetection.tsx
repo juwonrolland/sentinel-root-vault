@@ -99,7 +99,10 @@ const ThreatDetection = () => {
             </Button>
           </Link>
           <AlertTriangle className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl font-bold">Threat Detection</h1>
+          <div>
+            <h1 className="text-2xl font-bold">Advanced Threat Detection</h1>
+            <p className="text-sm text-muted-foreground">Professional-grade automated threat analysis & log forensics</p>
+          </div>
         </div>
       </header>
 
@@ -107,15 +110,15 @@ const ThreatDetection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
-              <CardTitle>AI-Powered Analysis</CardTitle>
-              <CardDescription>Analyze logs and data for potential threats</CardDescription>
+              <CardTitle>Advanced Automated Analysis</CardTitle>
+              <CardDescription>Professional-grade log forensics and threat intelligence analysis</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="logdata">Log Data / System Information</Label>
                 <Textarea
                   id="logdata"
-                  placeholder="Paste system logs, network traffic data, or suspicious activity details..."
+                  placeholder="Paste system logs, network traffic data, security events, authentication attempts, or any suspicious activity details for comprehensive threat analysis and forensic investigation..."
                   value={logData}
                   onChange={(e) => setLogData(e.target.value)}
                   rows={8}
@@ -126,10 +129,10 @@ const ThreatDetection = () => {
                 {analyzing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Analyzing...
+                    Performing Professional Analysis...
                   </>
                 ) : (
-                  "Analyze for Threats"
+                  "Run Advanced Threat Analysis"
                 )}
               </Button>
             </CardContent>
@@ -172,7 +175,7 @@ const ThreatDetection = () => {
         <Card>
           <CardHeader>
             <CardTitle>Detected Threats</CardTitle>
-            <CardDescription>Recent threat detections and analysis results</CardDescription>
+            <CardDescription>Professional threat intelligence and forensic analysis results</CardDescription>
           </CardHeader>
           <CardContent>
             {threats.length === 0 ? (
