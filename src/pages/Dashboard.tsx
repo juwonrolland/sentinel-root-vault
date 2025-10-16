@@ -108,71 +108,89 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
+    <div className="min-h-screen bg-gradient-subtle">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="Glorious Global Technology" className="h-12 w-12" />
-            <h1 className="text-2xl font-bold">Glorious Global Security Intelligence Platform</h1>
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="Glorious Global Technology" className="h-12 w-12 animate-fade-in" />
+            <h1 className="text-2xl font-bold text-gradient">Glorious Global Security Platform</h1>
           </div>
-          <Button onClick={handleSignOut} variant="outline">Sign Out</Button>
+          <Button onClick={handleSignOut} variant="outline" className="hover:shadow-md transition-all">
+            Sign Out
+          </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Welcome back</h2>
-          <p className="text-muted-foreground">
+      <main className="container mx-auto px-4 py-12">
+        <div className="mb-12 animate-fade-in-up">
+          <h2 className="text-4xl font-bold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+            Welcome back
+          </h2>
+          <p className="text-muted-foreground text-lg">
             Comprehensive security monitoring and threat management system
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <Card className="gradient-card border-0 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Active Threats</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Active Threats</CardTitle>
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <Activity className="h-5 w-5 text-destructive" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">No active threats detected</p>
+              <div className="text-3xl font-bold text-foreground">0</div>
+              <p className="text-xs text-success mt-1 flex items-center gap-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-success"></span>
+                No active threats detected
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="gradient-card border-0 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">System Health</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">System Health</CardTitle>
+              <div className="p-2 rounded-lg bg-success/10">
+                <TrendingUp className="h-5 w-5 text-success" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">100%</div>
-              <p className="text-xs text-muted-foreground">All systems operational</p>
+              <div className="text-3xl font-bold text-foreground">100%</div>
+              <p className="text-xs text-success mt-1 flex items-center gap-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-success"></span>
+                All systems operational
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="gradient-card border-0 shadow-lg hover:shadow-xl transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">Active Users</CardTitle>
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1</div>
-              <p className="text-xs text-muted-foreground">Currently logged in</p>
+              <div className="text-3xl font-bold text-foreground">1</div>
+              <p className="text-xs text-muted-foreground mt-1">Currently logged in</p>
             </CardContent>
           </Card>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => (
+          {features.map((feature, index) => (
             <Link key={feature.path} to={feature.path}>
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <Card className="gradient-card border-0 shadow-lg hover:shadow-glow transition-all duration-300 cursor-pointer h-full group animate-fade-in-up hover:scale-105" style={{ animationDelay: `${index * 0.05}s` }}>
                 <CardHeader>
-                  <feature.icon className={`h-12 w-12 ${feature.color} mb-2`} />
-                  <CardTitle>{feature.title}</CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
+                  <div className={`p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 w-fit mb-3 group-hover:shadow-glow transition-all`}>
+                    <feature.icon className={`h-8 w-8 ${feature.color}`} />
+                  </div>
+                  <CardTitle className="text-xl group-hover:text-primary transition-colors">{feature.title}</CardTitle>
+                  <CardDescription className="text-sm">{feature.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all">
                     Open {feature.title}
                   </Button>
                 </CardContent>
@@ -181,12 +199,12 @@ const Dashboard = () => {
           ))}
         </div>
 
-        <footer className="mt-12 pt-8 border-t">
+        <footer className="mt-16 pt-8 border-t border-border/50">
           <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
-            <Link to="/about" className="hover:text-foreground transition-colors">About Us</Link>
-            <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
-            <Link to="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link to="/terms-of-service" className="hover:text-foreground transition-colors">Terms of Service</Link>
+            <Link to="/about" className="hover:text-primary transition-colors">About Us</Link>
+            <Link to="/contact" className="hover:text-primary transition-colors">Contact</Link>
+            <Link to="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link>
+            <Link to="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link>
           </div>
           <p className="text-center text-sm text-muted-foreground mt-4">
             © {new Date().getFullYear()} Glorious Global Technology. All rights reserved.
