@@ -111,9 +111,11 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="Glorious Global Technology" className="h-12 w-12 animate-fade-in" />
-            <h1 className="text-2xl font-bold text-gradient">Glorious Global Security Platform</h1>
+          <div className="flex items-center gap-4">
+            <img src={logo} alt="Glorious Global Security Intelligence Platform" className="h-14 w-14 animate-fade-in object-contain" />
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Glorious Global Security Intelligence Platform
+            </h1>
           </div>
           <Button onClick={handleSignOut} variant="outline" className="hover:shadow-md transition-all">
             Sign Out
