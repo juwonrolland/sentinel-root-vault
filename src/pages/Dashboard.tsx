@@ -120,7 +120,7 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img src={logo} alt="Glorious Global Security Intelligence Platform" className="h-14 w-14 animate-fade-in object-contain" />
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-[#1a2942] dark:text-white">
               Glorious Global Security Intelligence Platform
             </h1>
           </div>
@@ -132,7 +132,7 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 py-12">
         <div className="mb-12 animate-fade-in-up">
-          <h2 className="text-4xl font-bold mb-3 bg-gradient-primary bg-clip-text text-transparent">
+          <h2 className="text-3xl md:text-4xl font-bold mb-3 text-[#1a2942] dark:text-white">
             Welcome back
           </h2>
           <p className="text-muted-foreground text-lg">
