@@ -92,7 +92,7 @@ const Auth = () => {
         <CardHeader className="text-center space-y-4">
           <div className="flex flex-col items-center gap-3">
             <img src={logo} alt="Glorious Global Security Intelligence Platform Logo" className="h-16 w-16 object-contain" />
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">
+            <h1 className="text-xl md:text-2xl font-bold text-card-foreground leading-tight px-4">
               Glorious Global Security Intelligence Platform
             </h1>
           </div>
