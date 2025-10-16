@@ -36,7 +36,7 @@ export default function ComplianceReports() {
 
   const loadReports = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("compliance_reports")
         .select("*")
         .order("created_at", { ascending: false });
@@ -59,7 +59,7 @@ export default function ComplianceReports() {
 
       const { data: { session } } = await supabase.auth.getSession();
       
-      const { error } = await (supabase as any).from("compliance_reports").insert({
+      const { error } = await supabase.from("compliance_reports").insert({
         report_type: reportType,
         period_start: periodStart.toISOString(),
         period_end: periodEnd.toISOString(),

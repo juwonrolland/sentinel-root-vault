@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_reports: {
+        Row: {
+          created_at: string
+          findings: Json | null
+          generated_by: string
+          id: string
+          period_end: string
+          period_start: string
+          report_type: string
+        }
+        Insert: {
+          created_at?: string
+          findings?: Json | null
+          generated_by: string
+          id?: string
+          period_end: string
+          period_start: string
+          report_type: string
+        }
+        Update: {
+          created_at?: string
+          findings?: Json | null
+          generated_by?: string
+          id?: string
+          period_end?: string
+          period_start?: string
+          report_type?: string
+        }
+        Relationships: []
+      }
       incidents: {
         Row: {
           assigned_to: string | null
@@ -86,6 +116,36 @@ export type Database = {
           status?: Database["public"]["Enums"]["incident_status"] | null
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
