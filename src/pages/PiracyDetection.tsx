@@ -101,18 +101,20 @@ const PiracyDetection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
+    <div className="min-h-screen bg-gradient-subtle">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Link to="/dashboard">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="hover:bg-accent">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <ShieldAlert className="h-8 w-8 text-primary" />
+          <div className="p-2 bg-warning/10 rounded-lg">
+            <ShieldAlert className="h-6 w-6 md:h-8 md:w-8 text-warning" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold">Piracy & Copyright Detection</h1>
-            <p className="text-sm text-muted-foreground">High-speed scanning up to 1M websites/hour</p>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Piracy & Copyright Detection</h1>
+            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">High-speed scanning up to 1M websites/hour</p>
           </div>
         </div>
       </header>

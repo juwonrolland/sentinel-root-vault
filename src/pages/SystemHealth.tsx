@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Activity, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
+import { Activity, TrendingUp, TrendingDown, AlertTriangle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 interface HealthMetric {
@@ -90,15 +90,25 @@ export default function SystemHealth() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold">System Health</h1>
-            <p className="text-muted-foreground">Real-time system performance monitoring</p>
+    <div className="min-h-screen bg-gradient-subtle">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button onClick={() => navigate("/dashboard")} variant="ghost" size="icon" className="hover:bg-accent">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="p-2 bg-accent/10 rounded-lg">
+              <Activity className="h-6 w-6 md:h-8 md:w-8 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">System Health</h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Real-time system performance monitoring</p>
+            </div>
           </div>
-          <Button onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
         </div>
+      </header>
+      <div className="container mx-auto p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {["cpu_usage", "memory_usage", "network_latency"].map((metricType) => {
@@ -152,6 +162,7 @@ export default function SystemHealth() {
             </Table>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

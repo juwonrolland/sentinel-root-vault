@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, BellOff, CheckCheck } from "lucide-react";
+import { Bell, BellOff, CheckCheck, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 interface Notification {
@@ -116,29 +116,38 @@ export default function Notifications() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold flex items-center gap-2">
-              <Bell className="h-8 w-8" />
-              Notifications
+    <div className="min-h-screen bg-gradient-subtle">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-4">
+            <Button onClick={() => navigate("/dashboard")} variant="ghost" size="icon" className="hover:bg-accent">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="p-2 bg-warning/10 rounded-lg">
+              <Bell className="h-6 w-6 md:h-8 md:w-8 text-warning" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-foreground">Notifications</h1>
+                <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">System alerts and updates</p>
+              </div>
               {unreadCount > 0 && (
-                <Badge variant="destructive">{unreadCount}</Badge>
+                <Badge variant="destructive" className="ml-2">{unreadCount}</Badge>
               )}
-            </h1>
-            <p className="text-muted-foreground">System alerts and updates</p>
+            </div>
           </div>
           <div className="flex gap-2">
             {unreadCount > 0 && (
-              <Button variant="outline" onClick={markAllAsRead}>
-                <CheckCheck className="h-4 w-4 mr-2" />
-                Mark All Read
+              <Button variant="outline" size="sm" onClick={markAllAsRead}>
+                <CheckCheck className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Mark All Read</span>
               </Button>
             )}
-            <Button onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
           </div>
         </div>
+      </header>
+      <div className="container mx-auto p-4 md:p-8">
+        <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
 
         <div className="space-y-4">
           {notifications.length === 0 ? (
@@ -174,6 +183,7 @@ export default function Notifications() {
               </Card>
             ))
           )}
+        </div>
         </div>
       </div>
     </div>

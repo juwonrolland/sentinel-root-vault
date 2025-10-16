@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Download } from "lucide-react";
+import { FileText, Download, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 interface ComplianceReport {
@@ -94,15 +94,25 @@ export default function ComplianceReports() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold">Compliance Reports</h1>
-            <p className="text-muted-foreground">Generate and manage compliance documentation</p>
+    <div className="min-h-screen bg-gradient-subtle">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button onClick={() => navigate("/dashboard")} variant="ghost" size="icon" className="hover:bg-accent">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <FileText className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">Compliance Reports</h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Generate GDPR, HIPAA, and SOC2 compliance documentation</p>
+            </div>
           </div>
-          <Button onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
         </div>
+      </header>
+      <div className="container mx-auto p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {["GDPR", "HIPAA", "SOC2"].map((type) => (
@@ -158,6 +168,7 @@ export default function ComplianceReports() {
             </Table>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

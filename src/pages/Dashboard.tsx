@@ -118,24 +118,26 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <img src={logo} alt="Glorious Global Security Intelligence Platform" className="h-14 w-14 animate-fade-in object-contain" />
-            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-[#1a2942] dark:text-white">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <img src={logo} alt="Glorious Global Security Intelligence Platform" className="h-10 w-10 md:h-12 md:w-12 animate-fade-in object-contain" />
+            </div>
+            <h1 className="text-sm sm:text-base md:text-xl lg:text-2xl font-bold text-foreground leading-tight">
               Glorious Global Security Intelligence Platform
             </h1>
           </div>
-          <Button onClick={handleSignOut} variant="outline" className="hover:shadow-md transition-all">
+          <Button onClick={handleSignOut} variant="outline" size="sm" className="hover:shadow-md transition-all">
             Sign Out
           </Button>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12">
-        <div className="mb-12 animate-fade-in-up">
-          <h2 className="text-3xl md:text-4xl font-bold mb-3 text-[#1a2942] dark:text-white">
-            Welcome back
+      <main className="container mx-auto px-4 py-8 md:py-12">
+        <div className="mb-8 md:mb-12 animate-fade-in-up">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 text-foreground">
+            Welcome back{user?.email ? `, ${user.email.split('@')[0]}` : ''}
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-base md:text-lg">
             Comprehensive security monitoring and threat management system
           </p>
         </div>

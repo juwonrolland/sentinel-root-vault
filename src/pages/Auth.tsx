@@ -87,12 +87,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 animate-fade-in">
+      <Card className="w-full max-w-md shadow-xl animate-scale-in">
         <CardHeader className="text-center space-y-4">
           <div className="flex flex-col items-center gap-3">
-            <img src={logo} alt="Glorious Global Security Intelligence Platform Logo" className="h-16 w-16 object-contain" />
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold leading-tight px-4 text-[#1a2942] dark:text-white">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <img src={logo} alt="Glorious Global Security Intelligence Platform Logo" className="h-16 w-16 object-contain" />
+            </div>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold leading-tight px-4 text-foreground">
               Glorious Global Security Intelligence Platform
             </h1>
           </div>
