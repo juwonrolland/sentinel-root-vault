@@ -12,7 +12,7 @@ interface HealthMetric {
   id: string;
   metric_name: string;
   metric_value: number;
-  status: "healthy" | "warning" | "critical";
+  status: string;
   metadata: any;
   recorded_at: string;
 }
@@ -37,7 +37,7 @@ export default function SystemHealth() {
 
   const loadMetrics = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("system_health")
         .select("*")
         .order("recorded_at", { ascending: false })

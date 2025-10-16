@@ -188,6 +188,33 @@ export type Database = {
         }
         Relationships: []
       }
+      system_health: {
+        Row: {
+          id: string
+          metadata: Json | null
+          metric_name: string
+          metric_value: number
+          recorded_at: string
+          status: string
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          metric_value: number
+          recorded_at?: string
+          status: string
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          metric_value?: number
+          recorded_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       threat_detections: {
         Row: {
           assigned_to: string | null
