@@ -50,6 +50,17 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Input validation
+    if (!email || !password) {
+      toast({
+        title: "Validation error",
+        description: "Email and password are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -66,6 +77,10 @@ const Auth = () => {
         variant: "destructive",
       });
     } else {
+      toast({
+        title: "Success",
+        description: "Signed in successfully",
+      });
       navigate("/dashboard");
     }
   };

@@ -104,6 +104,13 @@ const Dashboard = () => {
       icon: Bell,
       path: "/notifications",
       color: "text-yellow-500"
+    },
+    {
+      title: "Security & Compliance",
+      description: "Global standards, audit trails, and enterprise security",
+      icon: Lock,
+      path: "/security-compliance",
+      color: "text-emerald-500"
     }
   ];
 
