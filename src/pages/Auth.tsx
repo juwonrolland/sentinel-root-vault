@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -89,10 +90,12 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Shield className="h-12 w-12 text-primary" />
+          <div className="flex justify-center items-center gap-3 mb-4">
+            <img src={logo} alt="Glorious Global Security Intelligence Platform" className="h-12 w-12 object-contain" />
+            <h1 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              Glorious Global Security Intelligence Platform
+            </h1>
           </div>
-          <CardTitle className="text-3xl">Security Platform</CardTitle>
           <CardDescription>Advanced Intelligence Network System</CardDescription>
         </CardHeader>
         <CardContent>
