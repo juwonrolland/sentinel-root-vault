@@ -10,6 +10,7 @@ import SecurityDashboard from "./pages/SecurityDashboard";
 import ThreatDetection from "./pages/ThreatDetection";
 import AccessControl from "./pages/AccessControl";
 import SentimentAnalysis from "./pages/SentimentAnalysis";
+import PiracyDetection from "./pages/PiracyDetection";
 import IncidentResponse from "./pages/IncidentResponse";
 import SystemHealth from "./pages/SystemHealth";
 import ComplianceReports from "./pages/ComplianceReports";
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/threat-detection" element={<ThreatDetection />} />
           <Route path="/access-control" element={<AccessControl />} />
           <Route path="/sentiment-analysis" element={<SentimentAnalysis />} />
+          <Route path="/piracy-detection" element={<PiracyDetection />} />
           <Route path="/incident-response" element={<IncidentResponse />} />
           <Route path="/system-health" element={<SystemHealth />} />
           <Route path="/compliance-reports" element={<ComplianceReports />} />

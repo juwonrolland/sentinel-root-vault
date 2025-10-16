@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { content } = await req.json();
+    const { content, analysisType = 'comprehensive' } = await req.json();
 
     if (!content) {
       throw new Error('Content is required');
@@ -33,9 +33,9 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    console.log('Analyzing sentiment with AI...');
+    console.log('Performing comprehensive forensic NLP analysis...');
 
-    // Call Lovable AI for sentiment analysis
+    // Enhanced forensic NLP analysis with strategic context
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -47,27 +47,72 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a sentiment analysis AI specialized in security and threat detection.
-            Analyze the provided text and identify:
-            1. Sentiment (positive, negative, neutral)
-            2. Sentiment score (0.0 to 1.0, where 1.0 is most positive)
-            3. Key keywords and phrases (array of strings)
-            4. Named entities (people, organizations, locations as JSON)
-            5. Whether content should be flagged for security review (boolean)
+            content: `You are an advanced forensic NLP security analyst with expertise in:
+            - Deep contextual analysis and linguistic pattern recognition
+            - Strategic security threat assessment
+            - Copyright infringement detection
+            - Sentiment analysis with forensic-level detail
+            - Malicious intent detection
+            - Social engineering pattern identification
+            - Data breach indicators
+            - Intellectual property violation markers
+            
+            Analyze the provided content with forensic precision and provide:
+            1. Sentiment (positive, negative, neutral, suspicious, malicious)
+            2. Sentiment score (0.0 to 1.0)
+            3. Security threat level (none, low, medium, high, critical)
+            4. Key forensic keywords and phrases (security-relevant terms)
+            5. Named entities (people, organizations, locations, products, brands)
+            6. Copyright/IP violation indicators
+            7. Malicious intent markers
+            8. Social engineering patterns
+            9. Data breach risk indicators
+            10. Strategic security recommendations
+            11. Contextual threat assessment
+            12. Red flag warnings for security teams
             
             Respond in JSON format:
             {
-              "sentiment_label": "positive|negative|neutral",
+              "sentiment_label": "positive|negative|neutral|suspicious|malicious",
               "sentiment_score": 0.85,
+              "threat_level": "none|low|medium|high|critical",
               "keywords": ["keyword1", "keyword2"],
-              "entities": {"people": [], "organizations": [], "locations": []},
+              "entities": {
+                "people": [],
+                "organizations": [],
+                "locations": [],
+                "products": [],
+                "brands": []
+              },
+              "copyright_indicators": {
+                "detected": false,
+                "confidence": 0.0,
+                "markers": []
+              },
+              "malicious_indicators": {
+                "detected": false,
+                "patterns": [],
+                "confidence": 0.0
+              },
+              "social_engineering": {
+                "detected": false,
+                "tactics": [],
+                "confidence": 0.0
+              },
+              "data_breach_risk": {
+                "level": "none|low|medium|high",
+                "indicators": []
+              },
+              "security_recommendations": [],
+              "red_flags": [],
+              "contextual_analysis": "",
               "flagged": false,
-              "reason": "explanation if flagged"
+              "reason": "detailed explanation if flagged"
             }`
           },
           {
             role: 'user',
-            content: `Analyze this text:\n\n${content}`
+            content: `Perform comprehensive forensic NLP security analysis on this content:\n\n${content}`
           }
         ]
       })
@@ -86,7 +131,7 @@ serve(async (req) => {
     const aiData = await aiResponse.json();
     const analysis = aiData.choices[0].message.content;
 
-    console.log('AI Sentiment Analysis:', analysis);
+    console.log('Forensic NLP Analysis Complete:', analysis);
 
     // Parse AI response
     let sentimentData;
@@ -97,22 +142,30 @@ serve(async (req) => {
       sentimentData = {
         sentiment_label: 'neutral',
         sentiment_score: 0.5,
+        threat_level: 'none',
         keywords: [],
         entities: {},
+        copyright_indicators: { detected: false, confidence: 0.0, markers: [] },
+        malicious_indicators: { detected: false, patterns: [], confidence: 0.0 },
+        social_engineering: { detected: false, tactics: [], confidence: 0.0 },
+        data_breach_risk: { level: 'none', indicators: [] },
+        security_recommendations: [],
+        red_flags: [],
+        contextual_analysis: '',
         flagged: false
       };
     }
 
-    // Store sentiment analysis
+    // Store comprehensive forensic analysis
     const { error: insertError } = await supabase
       .from('sentiment_analysis')
       .insert([{
-        content: content.substring(0, 1000), // Limit stored content
+        content: content.substring(0, 1000),
         sentiment_score: sentimentData.sentiment_score,
         sentiment_label: sentimentData.sentiment_label,
         keywords: sentimentData.keywords,
         entities: sentimentData.entities,
-        flagged: sentimentData.flagged,
+        flagged: sentimentData.flagged || sentimentData.threat_level === 'critical' || sentimentData.threat_level === 'high',
         created_by: user.id
       }]);
 
@@ -121,14 +174,37 @@ serve(async (req) => {
       throw insertError;
     }
 
-    // If flagged, create security event
-    if (sentimentData.flagged) {
+    // Create security event for any detected threats
+    const shouldCreateEvent = sentimentData.flagged || 
+                             sentimentData.threat_level === 'high' || 
+                             sentimentData.threat_level === 'critical' ||
+                             sentimentData.copyright_indicators?.detected ||
+                             sentimentData.malicious_indicators?.detected ||
+                             sentimentData.social_engineering?.detected;
+
+    if (shouldCreateEvent) {
+      const severityMap: { [key: string]: string } = {
+        'critical': 'critical',
+        'high': 'high',
+        'medium': 'medium',
+        'low': 'low',
+        'none': 'low'
+      };
+
       await supabase
         .from('security_events')
         .insert([{
-          event_type: 'Flagged Content',
-          severity: 'medium',
-          description: `Content flagged for review: ${sentimentData.reason || 'Security concern detected'}`,
+          event_type: 'Forensic Security Alert',
+          severity: severityMap[sentimentData.threat_level] || 'medium',
+          description: `Security Analysis Alert: ${sentimentData.reason || 'Multiple security indicators detected'}. Red Flags: ${sentimentData.red_flags?.join(', ') || 'See detailed analysis'}`,
+          metadata: {
+            threat_level: sentimentData.threat_level,
+            copyright_detected: sentimentData.copyright_indicators?.detected,
+            malicious_detected: sentimentData.malicious_indicators?.detected,
+            social_engineering_detected: sentimentData.social_engineering?.detected,
+            recommendations: sentimentData.security_recommendations,
+            red_flags: sentimentData.red_flags
+          },
           created_by: user.id
         }]);
     }
@@ -138,15 +214,19 @@ serve(async (req) => {
       .from('access_logs')
       .insert([{
         user_id: user.id,
-        action: 'SENTIMENT_ANALYSIS',
+        action: 'FORENSIC_NLP_ANALYSIS',
         resource: 'analyze-sentiment',
-        success: true
+        success: true,
+        metadata: {
+          threat_level: sentimentData.threat_level,
+          analysis_type: analysisType
+        }
       }]);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Sentiment analysis completed',
+        message: 'Comprehensive forensic analysis completed',
         data: sentimentData
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
