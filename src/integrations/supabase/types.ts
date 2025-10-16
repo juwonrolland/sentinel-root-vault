@@ -50,6 +50,117 @@ export type Database = {
         }
         Relationships: []
       }
+      active_sessions: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_valid: boolean | null
+          last_activity: string | null
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          is_valid?: boolean | null
+          last_activity?: string | null
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_valid?: boolean | null
+          last_activity?: string | null
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      api_rate_limits: {
+        Row: {
+          endpoint: string
+          id: string
+          last_request_at: string | null
+          request_count: number | null
+          user_id: string | null
+          window_start: string | null
+        }
+        Insert: {
+          endpoint: string
+          id?: string
+          last_request_at?: string | null
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          endpoint?: string
+          id?: string
+          last_request_at?: string | null
+          request_count?: number | null
+          user_id?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
+      }
+      compliance_checks: {
+        Row: {
+          check_name: string
+          check_type: string
+          checked_by: string | null
+          created_at: string | null
+          evidence_links: string[] | null
+          findings: Json | null
+          id: string
+          last_checked: string | null
+          metadata: Json | null
+          next_check_due: string | null
+          recommendations: Json | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          check_name: string
+          check_type: string
+          checked_by?: string | null
+          created_at?: string | null
+          evidence_links?: string[] | null
+          findings?: Json | null
+          id?: string
+          last_checked?: string | null
+          metadata?: Json | null
+          next_check_due?: string | null
+          recommendations?: Json | null
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          check_name?: string
+          check_type?: string
+          checked_by?: string | null
+          created_at?: string | null
+          evidence_links?: string[] | null
+          findings?: Json | null
+          id?: string
+          last_checked?: string | null
+          metadata?: Json | null
+          next_check_due?: string | null
+          recommendations?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       compliance_reports: {
         Row: {
           created_at: string
@@ -173,6 +284,54 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      security_audit_log: {
+        Row: {
+          action_performed: string | null
+          created_at: string | null
+          event_category: string
+          event_type: string
+          failure_reason: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resource_accessed: string | null
+          severity: string
+          success: boolean | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_performed?: string | null
+          created_at?: string | null
+          event_category: string
+          event_type: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_accessed?: string | null
+          severity: string
+          success?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_performed?: string | null
+          created_at?: string | null
+          event_category?: string
+          event_type?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_accessed?: string | null
+          severity?: string
+          success?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -340,12 +499,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_max_requests: number
+          p_user_id: string
+          p_window_minutes: number
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      invalidate_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {
