@@ -133,6 +133,40 @@ export default function About() {
         </Card>
         </div>
       </main>
+
+      <footer className="border-t bg-card/80 backdrop-blur-sm mt-16">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <img src={logo} alt="Logo" className="h-6 w-6" />
+                <span className="font-bold text-lg">Glorious Global</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Enterprise-grade security intelligence platform trusted by thousands worldwide.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/about" className="text-muted-foreground hover:text-primary">About Us</Link></li>
+                <li><Link to="/contact" className="text-muted-foreground hover:text-primary">Contact</Link></li>
+                <li><Link to="/security-compliance" className="text-muted-foreground hover:text-primary">Security & Compliance</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Legal</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/privacy-policy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
+                <li><Link to="/terms-of-service" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} Glorious Global Technology. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

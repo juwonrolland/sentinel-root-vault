@@ -1,17 +1,30 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Shield } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 export default function TermsOfService() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold">Terms of Service</h1>
-          <Button onClick={() => navigate("/")}>Back to Home</Button>
+    <div className="min-h-screen bg-gradient-subtle">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Link to="/">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <img src={logo} alt="Glorious Global Logo" className="h-8 w-8" />
+          </div>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">
+            Terms of Service
+          </h1>
         </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto space-y-8">
 
         <Card>
           <CardHeader>
@@ -92,7 +105,42 @@ export default function TermsOfService() {
             </section>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </main>
+
+      <footer className="border-t bg-card/80 backdrop-blur-sm mt-16">
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Shield className="h-6 w-6 text-primary" />
+                <span className="font-bold text-lg">Glorious Global</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Enterprise-grade security intelligence platform trusted by thousands worldwide.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/about" className="text-muted-foreground hover:text-primary">About Us</Link></li>
+                <li><Link to="/contact" className="text-muted-foreground hover:text-primary">Contact</Link></li>
+                <li><Link to="/security-compliance" className="text-muted-foreground hover:text-primary">Security & Compliance</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Legal</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link to="/privacy-policy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
+                <li><Link to="/terms-of-service" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
+            <p>&copy; {new Date().getFullYear()} Glorious Global Technology. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
