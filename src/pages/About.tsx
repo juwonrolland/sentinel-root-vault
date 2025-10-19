@@ -1,19 +1,31 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, Globe, Award } from "lucide-react";
+import { Shield, Users, Globe, Award, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 export default function About() {
-  const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold">About Us</h1>
-          <Button onClick={() => navigate("/")}>Back to Home</Button>
+    <div className="min-h-screen bg-gradient-subtle">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Link to="/">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <img src={logo} alt="Logo" className="h-8 w-8" />
+          </div>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">
+            About Glorious Global
+          </h1>
         </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto space-y-8">
 
         <Card>
           <CardHeader className="text-center">
@@ -119,7 +131,8 @@ export default function About() {
             </section>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

@@ -1,15 +1,24 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, Phone, MapPin } from "lucide-react";
-import { toast } from "sonner";
-import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, Phone, MapPin, ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+import logo from "@/assets/logo.png";
+
+const contactSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().email("Invalid email address").max(255),
+  subject: z.string().min(5, "Subject must be at least 5 characters").max(200),
+  message: z.string().min(10, "Message must be at least 10 characters").max(2000)
+});
 
 export default function Contact() {
-  const navigate = useNavigate();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -17,19 +26,63 @@ export default function Contact() {
     message: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Thank you for your message! We will respond within 24 hours.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setLoading(true);
+
+    try {
+      const validated = contactSchema.parse(formData);
+      
+      // Simulate form submission
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Message Sent!",
+        description: "We'll get back to you within 24 hours.",
+      });
+
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-bold">Contact Us</h1>
-          <Button onClick={() => navigate("/")}>Back to Home</Button>
+    <div className="min-h-screen bg-gradient-subtle">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Link to="/">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <img src={logo} alt="Logo" className="h-8 w-8" />
+          </div>
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">
+            Contact Us
+          </h1>
         </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-6xl mx-auto space-y-8">
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <Card>
@@ -81,7 +134,9 @@ export default function Contact() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full">Send Message</Button>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Sending..." : "Send Message"}
+                </Button>
               </form>
             </CardContent>
           </Card>
@@ -126,7 +181,8 @@ export default function Contact() {
             </Card>
           </div>
         </div>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
