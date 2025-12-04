@@ -2,3 +2,12 @@ project_id = "quzmyajnnwwxursoxrgw"
 
 [functions.simulate-security-event]
 verify_jwt = false
+
+[functions.analyze-threat]
+verify_jwt = false
+
+[functions.analyze-sentiment]
+verify_jwt = false
+
+[functions.piracy-detection]
+verify_jwt = false

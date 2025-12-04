@@ -24,7 +24,9 @@ import {
   Scan,
   FlaskConical,
   Loader2,
-  BarChart3
+  BarChart3,
+  Brain,
+  Cpu,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
@@ -40,6 +42,8 @@ import { ThreatIntelligenceFeed } from "@/components/ThreatIntelligenceFeed";
 import { GlobalThreatMap } from "@/components/GlobalThreatMap";
 import { ThreatAnalyticsChart } from "@/components/ThreatAnalyticsChart";
 import { ThreatStatsSummary } from "@/components/ThreatStatsSummary";
+import { AIThreatAnalyzer } from "@/components/AIThreatAnalyzer";
+import { LiveActivityFeed } from "@/components/LiveActivityFeed";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -433,6 +437,35 @@ const Dashboard = () => {
             <GlobalThreatMap height="450px" />
           </CardContent>
         </Card>
+
+        {/* AI Intelligence & Activity Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          {/* AI Threat Analyzer */}
+          <div className="lg:col-span-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Brain className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold text-foreground">AI Threat Analysis</h3>
+              <span className="text-xs text-accent font-mono ml-auto">NEURAL ENGINE</span>
+            </div>
+            <AIThreatAnalyzer />
+          </div>
+          
+          {/* Live Activity Feed */}
+          <Card className="cyber-card lg:col-span-7 overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <Cpu className="h-4 w-4 text-primary" />
+                  System Activity Monitor
+                </CardTitle>
+                <span className="text-xs text-muted-foreground font-mono">REAL-TIME</span>
+              </div>
+            </CardHeader>
+            <CardContent className="h-[450px]">
+              <LiveActivityFeed maxItems={15} />
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Analytics Section */}
         <div className="mb-8">
