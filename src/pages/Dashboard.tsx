@@ -23,7 +23,8 @@ import {
   Fingerprint,
   Scan,
   FlaskConical,
-  Loader2
+  Loader2,
+  BarChart3
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
@@ -33,6 +34,8 @@ import { ThreatLevelIndicator } from "@/components/ThreatLevelIndicator";
 import { NetworkTopology } from "@/components/NetworkTopology";
 import { ThreatIntelligenceFeed } from "@/components/ThreatIntelligenceFeed";
 import { GlobalThreatMap } from "@/components/GlobalThreatMap";
+import { ThreatAnalyticsChart } from "@/components/ThreatAnalyticsChart";
+import { ThreatStatsSummary } from "@/components/ThreatStatsSummary";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -412,6 +415,41 @@ const Dashboard = () => {
             <GlobalThreatMap height="450px" />
           </CardContent>
         </Card>
+
+        {/* Analytics Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Threat Analytics</h3>
+            <span className="text-xs text-muted-foreground font-mono ml-auto">LAST 24 HOURS</span>
+          </div>
+          
+          {/* Stats Summary */}
+          <ThreatStatsSummary className="mb-6" />
+          
+          {/* Charts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="cyber-card overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Threat Trends</CardTitle>
+                <CardDescription className="text-xs">Stacked area view of events by severity</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ThreatAnalyticsChart variant="area" hours={24} />
+              </CardContent>
+            </Card>
+            
+            <Card className="cyber-card overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Event Distribution</CardTitle>
+                <CardDescription className="text-xs">Hourly breakdown by severity level</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ThreatAnalyticsChart variant="bar" hours={24} />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
         {/* Feature Grid */}
         <div className="mb-8">
