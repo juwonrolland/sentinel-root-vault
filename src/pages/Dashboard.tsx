@@ -46,6 +46,9 @@ import { AIThreatAnalyzer } from "@/components/AIThreatAnalyzer";
 import { LiveActivityFeed } from "@/components/LiveActivityFeed";
 import { MobileNavDrawer } from "@/components/MobileNavDrawer";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import { useOfflineMode } from "@/hooks/useOfflineMode";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -57,6 +60,9 @@ const Dashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { lightTap, mediumTap, success: hapticSuccess } = useHapticFeedback();
+  const { isOnline, cacheData, getCachedData } = useOfflineMode();
+  const CACHE_KEY = 'dashboard-data';
   
   // Alert preferences from local storage
   const { preferences, updatePreference } = useAlertPreferences();
@@ -103,21 +109,37 @@ const Dashboard = () => {
   }, [navigate]);
 
   const loadDashboardData = async () => {
-    const [threatsData, eventsData] = await Promise.all([
-      supabase.from('threat_detections').select('*', { count: 'exact' }).eq('status', 'active'),
-      supabase.from('security_events').select('*', { count: 'exact' }),
-    ]);
+    if (isOnline) {
+      const [threatsData, eventsData] = await Promise.all([
+        supabase.from('threat_detections').select('*', { count: 'exact' }).eq('status', 'active'),
+        supabase.from('security_events').select('*', { count: 'exact' }),
+      ]);
 
-    setThreats(threatsData.count || 0);
-    setEvents(eventsData.count || 0);
+      const newThreats = threatsData.count || 0;
+      const newEvents = eventsData.count || 0;
+      
+      setThreats(newThreats);
+      setEvents(newEvents);
+      
+      // Cache for offline
+      cacheData(CACHE_KEY, { threats: newThreats, events: newEvents }, 30);
+    } else {
+      // Load from cache
+      const cached = getCachedData<{ threats: number; events: number }>(CACHE_KEY);
+      if (cached) {
+        setThreats(cached.threats);
+        setEvents(cached.events);
+      }
+    }
   };
 
   const handleRefresh = async () => {
+    mediumTap();
     setIsRefreshing(true);
     await loadDashboardData();
-    // Small delay for better UX
     await new Promise(resolve => setTimeout(resolve, 500));
     setIsRefreshing(false);
+    hapticSuccess();
     toast({
       title: "Data Refreshed",
       description: "Dashboard data has been updated",
@@ -125,12 +147,14 @@ const Dashboard = () => {
   };
 
   const simulateSecurityEvent = async () => {
+    lightTap();
     setSimulating(true);
     try {
       const { data, error } = await supabase.functions.invoke('simulate-security-event');
       
       if (error) throw error;
       
+      hapticSuccess();
       toast({
         title: "Event Simulated",
         description: `${data.event?.event_type} (${data.event?.severity?.toUpperCase()})`,
@@ -148,6 +172,7 @@ const Dashboard = () => {
   };
 
   const handleSignOut = async () => {
+    lightTap();
     await supabase.auth.signOut();
     navigate("/auth");
   };
@@ -239,6 +264,7 @@ const Dashboard = () => {
 
   return (
     <PullToRefresh onRefresh={handleRefresh} className="min-h-screen">
+      <OfflineBanner onRetry={loadDashboardData} cacheKey={CACHE_KEY} />
       <div className="min-h-screen bg-background cyber-grid">
       {/* Header */}
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-xl sticky top-0 z-50">
