@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Lock, User, Mail, KeyRound, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Shield, Lock, User, Mail, KeyRound, Eye, EyeOff, Loader2, Fingerprint } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { BiometricLoginButton } from "@/components/BiometricLoginButton";
+import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -16,9 +18,12 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showEnrollPrompt, setShowEnrollPrompt] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [particles, setParticles] = useState<{ x: number; y: number; delay: number }[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isSupported, isEnrolled, enrollBiometric, isAuthenticating } = useBiometricAuth();
 
   useEffect(() => {
     // Generate floating particles
@@ -73,7 +78,7 @@ const Auth = () => {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     setLoading(false);
 
@@ -88,8 +93,38 @@ const Auth = () => {
         title: "Access Granted",
         description: "Welcome to the Security Intelligence Platform",
       });
-      navigate("/dashboard");
+      
+      // Prompt for biometric enrollment if supported and not enrolled
+      if (isSupported && !isEnrolled && data.user) {
+        setCurrentUserId(data.user.id);
+        setShowEnrollPrompt(true);
+      } else {
+        navigate("/dashboard");
+      }
     }
+  };
+
+  const handleBiometricSuccess = async (biometricEmail: string) => {
+    setEmail(biometricEmail);
+    toast({
+      title: "Biometric Verified",
+      description: "Please enter your password to complete sign in",
+    });
+  };
+
+  const handleEnrollBiometric = async () => {
+    if (currentUserId && email) {
+      const success = await enrollBiometric(email, currentUserId);
+      if (success) {
+        navigate("/dashboard");
+      }
+    }
+    setShowEnrollPrompt(false);
+  };
+
+  const skipEnrollment = () => {
+    setShowEnrollPrompt(false);
+    navigate("/dashboard");
   };
 
   return (
@@ -235,6 +270,21 @@ const Auth = () => {
                     </>
                   )}
                 </Button>
+                
+                {/* Biometric Login Option */}
+                {isSupported && isEnrolled && (
+                  <>
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-border/30" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground">or</span>
+                      </div>
+                    </div>
+                    <BiometricLoginButton onSuccess={handleBiometricSuccess} />
+                  </>
+                )}
               </form>
             </TabsContent>
             
@@ -331,6 +381,58 @@ const Auth = () => {
         {/* Bottom glow line */}
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
       </Card>
+
+      {/* Biometric Enrollment Prompt */}
+      {showEnrollPrompt && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <Card className="cyber-card max-w-md w-full animate-scale-in">
+            <CardHeader className="text-center">
+              <div className="mx-auto p-4 bg-primary/10 rounded-full border border-primary/30 mb-4">
+                <Fingerprint className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-xl font-bold text-gradient">Enable Biometric Login?</h2>
+              <CardDescription>
+                Use fingerprint or Face ID for faster, secure sign-in next time
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-sm text-muted-foreground space-y-2 p-3 bg-secondary/50 rounded-lg border border-border/30">
+                <p className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-success" />
+                  Your biometric data never leaves your device
+                </p>
+                <p className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-success" />
+                  Works offline for instant access
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={skipEnrollment}
+                  className="flex-1 border-border/50"
+                >
+                  Skip for Now
+                </Button>
+                <Button
+                  onClick={handleEnrollBiometric}
+                  disabled={isAuthenticating}
+                  className="flex-1 bg-primary hover:bg-primary-light"
+                >
+                  {isAuthenticating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Fingerprint className="h-4 w-4 mr-2" />
+                      Enable
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
