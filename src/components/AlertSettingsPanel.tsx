@@ -32,10 +32,10 @@ export const AlertSettingsPanel = ({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 border-border/50 hover:bg-secondary/80"
+          className="h-8 w-8 sm:w-auto border-border/50 hover:bg-secondary/80 p-0 sm:px-3"
         >
-          <Settings2 className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">Alert Settings</span>
+          <Settings2 className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Settings</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 bg-card border-border/50" align="end">

@@ -87,40 +87,41 @@ export const LiveMetricCard = ({
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
       
       {/* Status indicator */}
-      <div className="absolute top-4 right-4 flex items-center gap-2">
-        <div className={cn("w-2 h-2 rounded-full animate-pulse", statusGlow[status])} />
-        <span className="text-xs text-muted-foreground uppercase tracking-wider">Live</span>
-        {onClick && <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />}
+      <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex items-center gap-1 sm:gap-2">
+        <div className={cn("w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full animate-pulse", statusGlow[status])} />
+        <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider hidden sm:inline">Live</span>
+        {onClick && <ChevronRight className="h-3 sm:h-4 w-3 sm:w-4 text-muted-foreground group-hover:text-primary transition-colors" />}
       </div>
 
       {/* Icon */}
-      <div className="mb-4">
+      <div className="mb-2 sm:mb-4">
         <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300",
-          "bg-gradient-to-br from-primary/20 to-accent/10 group-hover:shadow-glow-sm"
+          "w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-300",
+          "bg-gradient-to-br from-primary/20 to-accent/10 group-hover:shadow-glow-sm",
+          "[&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-6 sm:[&>svg]:w-6"
         )}>
           {icon}
         </div>
       </div>
 
       {/* Title */}
-      <p className="text-sm text-muted-foreground mb-2 uppercase tracking-wider">{title}</p>
+      <p className="text-[10px] sm:text-sm text-muted-foreground mb-1 sm:mb-2 uppercase tracking-wider truncate">{title}</p>
 
       {/* Value */}
-      <div className="flex items-baseline gap-2">
-        <span className="text-4xl font-bold text-foreground font-mono">
+      <div className="flex items-baseline gap-1 sm:gap-2">
+        <span className="text-xl sm:text-4xl font-bold text-foreground font-mono">
           {typeof value === "number" ? displayValue.toLocaleString() : value}
         </span>
-        {suffix && <span className="text-lg text-muted-foreground">{suffix}</span>}
+        {suffix && <span className="text-sm sm:text-lg text-muted-foreground">{suffix}</span>}
       </div>
 
       {/* Trend */}
       {trendValue && (
-        <div className={cn("mt-2 flex items-center gap-1 text-sm", trendColors[trend])}>
+        <div className={cn("mt-1 sm:mt-2 flex items-center gap-1 text-[10px] sm:text-sm", trendColors[trend])}>
           {trend === "up" && "↑"}
           {trend === "down" && "↓"}
           {trend === "neutral" && "→"}
-          <span>{trendValue}</span>
+          <span className="truncate">{trendValue}</span>
         </div>
       )}
 

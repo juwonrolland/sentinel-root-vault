@@ -640,5 +640,79 @@
     0 0 40px hsl(0 85% 55% / 0.2);
 }
 
+/* Mobile Responsive Enhancements */
+@media (max-width: 640px) {
+  /* Improve touch targets for main interactive elements */
+  .btn-touch,
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+  }
+  
+  /* Better spacing on mobile */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Reduce animation intensity on mobile */
+  .animate-pulse-glow,
+  .animate-scan,
+  .animate-float {
+    animation-duration: 4s;
+  }
+  
+  /* Smaller metric cards */
+  .metric-card {
+    padding: 0.75rem;
+  }
+  
+  /* Compact cyber grid on mobile */
+  .cyber-grid {
+    background-size: 20px 20px;
+  }
+  
+  /* Hide complex effects on small screens */
+  .hud-corner::before,
+  .hud-corner::after {
+    display: none;
+  }
+  
+  /* Smaller shadows on mobile */
+  .shadow-glow {
+    box-shadow: 0 0 15px hsl(185 100% 50% / 0.3);
+  }
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Safe area insets for notched devices */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Better tap highlight */
+* {
+  -webkit-tap-highlight-color: hsl(185 100% 50% / 0.1);
+}
+
 /* Font Import */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');

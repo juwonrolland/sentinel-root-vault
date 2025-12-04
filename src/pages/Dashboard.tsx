@@ -226,29 +226,29 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background cyber-grid">
       {/* Header */}
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-xl sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="p-2 bg-primary/10 rounded-xl border border-primary/20 animate-pulse-glow">
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <div className="relative flex-shrink-0">
+                <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg sm:rounded-xl border border-primary/20 animate-pulse-glow">
                   <img 
                     src={logo} 
                     alt="GGSIP Logo" 
-                    className="h-10 w-10 md:h-12 md:w-12 object-contain" 
+                    className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 object-contain" 
                   />
                 </div>
               </div>
-              <div>
-                <h1 className="text-lg md:text-xl font-bold text-gradient tracking-tight">
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-lg md:text-xl font-bold text-gradient tracking-tight truncate">
                   GLORIOUS GLOBAL SECURITY
                 </h1>
-                <p className="text-xs text-muted-foreground font-mono hidden md:block">
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-mono hidden sm:block">
                   INTELLIGENCE PLATFORM v2.0
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
               {/* Live Clock */}
               <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-secondary/50 rounded-lg border border-border/50">
                 <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
@@ -270,9 +270,9 @@ const Dashboard = () => {
                 onClick={handleSignOut} 
                 variant="outline" 
                 size="sm" 
-                className="border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all"
+                className="border-border/50 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all h-8 sm:h-9 px-2 sm:px-3"
               >
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Sign Out</span>
               </Button>
             </div>
@@ -280,32 +280,32 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
         {/* Welcome Section */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
             <div className="animate-fade-in">
-              <p className="text-sm text-primary font-mono mb-1">
+              <p className="text-xs sm:text-sm text-primary font-mono mb-1">
                 // OPERATOR: {user?.email?.split('@')[0]?.toUpperCase() || 'AGENT'}
               </p>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">
                 Security Operations Center
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Real-time global threat intelligence and security monitoring
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="px-3 py-1 rounded-full bg-success/10 border border-success/30 flex items-center gap-2">
+              <div className="px-2 sm:px-3 py-1 rounded-full bg-success/10 border border-success/30 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                <span className="text-xs font-medium text-success">ALL SYSTEMS OPERATIONAL</span>
+                <span className="text-[10px] sm:text-xs font-medium text-success">ALL SYSTEMS OPERATIONAL</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Main Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8">
           <LiveMetricCard
             title="Active Threats"
             value={threats}

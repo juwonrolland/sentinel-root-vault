@@ -93,19 +93,19 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
+    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4 relative overflow-hidden bg-background">
       {/* Animated background */}
       <div className="absolute inset-0 cyber-grid opacity-30" />
       
-      {/* Gradient orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      {/* Gradient orbs - smaller on mobile */}
+      <div className="absolute top-1/4 left-1/4 w-48 sm:w-96 h-48 sm:h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-48 sm:w-96 h-48 sm:h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       
-      {/* Floating particles */}
-      {particles.map((particle, i) => (
+      {/* Floating particles - hide some on mobile */}
+      {particles.slice(0, 10).map((particle, i) => (
         <div
           key={i}
-          className="absolute w-1 h-1 bg-primary/30 rounded-full animate-float"
+          className="absolute w-1 h-1 bg-primary/30 rounded-full animate-float hidden sm:block"
           style={{
             left: `${particle.x}%`,
             top: `${particle.y}%`,
@@ -119,45 +119,45 @@ const Auth = () => {
         <div className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-scan" />
       </div>
 
-      <Card className="w-full max-w-md cyber-card backdrop-blur-xl animate-scale-in relative z-10">
+      <Card className="w-full max-w-[95vw] sm:max-w-md cyber-card backdrop-blur-xl animate-scale-in relative z-10">
         {/* Top glow line */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
         
-        <CardHeader className="text-center space-y-6 pt-8">
+        <CardHeader className="text-center space-y-4 sm:space-y-6 pt-6 sm:pt-8 px-4 sm:px-6">
           {/* Logo container */}
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-3 sm:gap-4">
             <div className="relative">
               {/* Outer ring */}
               <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse scale-125" />
               {/* Inner glow */}
-              <div className="p-4 bg-gradient-to-br from-primary/20 to-accent/10 rounded-full border border-primary/30 shadow-glow">
+              <div className="p-3 sm:p-4 bg-gradient-to-br from-primary/20 to-accent/10 rounded-full border border-primary/30 shadow-glow">
                 <img 
                   src={logo} 
                   alt="GGSIP Logo" 
-                  className="h-16 w-16 object-contain" 
+                  className="h-12 w-12 sm:h-16 sm:w-16 object-contain" 
                 />
               </div>
               {/* Status indicator */}
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-background animate-pulse" />
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-success rounded-full border-2 border-background animate-pulse" />
             </div>
             
-            <div className="space-y-2">
-              <h1 className="text-xl md:text-2xl font-bold text-gradient tracking-tight">
+            <div className="space-y-1 sm:space-y-2">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gradient tracking-tight">
                 GLORIOUS GLOBAL SECURITY
               </h1>
-              <p className="text-xs font-mono text-muted-foreground tracking-widest">
+              <p className="text-[10px] sm:text-xs font-mono text-muted-foreground tracking-widest">
                 INTELLIGENCE PLATFORM
               </p>
             </div>
           </div>
           
-          <CardDescription className="text-muted-foreground flex items-center justify-center gap-2">
-            <Lock className="h-4 w-4 text-primary" />
+          <CardDescription className="text-muted-foreground flex items-center justify-center gap-2 text-sm">
+            <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
             <span>Secure Authentication Required</span>
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="pb-8">
+        <CardContent className="pb-6 sm:pb-8 px-4 sm:px-6">
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6 bg-secondary/50">
               <TabsTrigger 

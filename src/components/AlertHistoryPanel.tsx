@@ -161,10 +161,10 @@ export const AlertHistoryPanel = () => {
         <Button
           variant="outline"
           size="sm"
-          className="h-8 border-border/50 hover:bg-secondary/80 relative"
+          className="h-8 w-8 sm:w-auto border-border/50 hover:bg-secondary/80 relative p-0 sm:px-3"
         >
-          <History className="h-4 w-4 mr-2" />
-          <span className="hidden sm:inline">Alert History</span>
+          <History className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">History</span>
           {unacknowledgedCount > 0 && (
             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold flex items-center justify-center text-destructive-foreground">
               {unacknowledgedCount > 9 ? "9+" : unacknowledgedCount}
@@ -172,7 +172,7 @@ export const AlertHistoryPanel = () => {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px] bg-card border-border/50">
+      <SheetContent className="w-[90vw] sm:w-[400px] md:w-[540px] bg-card border-border/50">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <History className="h-5 w-5 text-primary" />
