@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Maximize2, Minimize2, RotateCcw } from 'lucide-react';
+import { Maximize2, Minimize2, RotateCcw, X, Move, ZoomIn, MousePointer2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ThreatOrigin {
@@ -69,9 +69,45 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
   const [threats, setThreats] = useState<ThreatOrigin[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLegend, setShowLegend] = useState(true);
+  const [showGestureHints, setShowGestureHints] = useState(false);
   const isMobile = useIsMobile();
   const targetLocation = { lat: 37.7749, lng: -122.4194 };
+
+  // Check if user has seen hints before
+  useEffect(() => {
+    const hasSeenHints = localStorage.getItem('map-gesture-hints-seen');
+    if (!hasSeenHints && isMobile) {
+      setShowGestureHints(true);
+    }
+  }, [isMobile]);
+
+  const dismissHints = () => {
+    setShowGestureHints(false);
+    localStorage.setItem('map-gesture-hints-seen', 'true');
+  };
+
+  // Handle fullscreen mode
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+    // Resize map after state change
+    setTimeout(() => {
+      map.current?.resize();
+    }, 100);
+  };
+
+  // Lock body scroll when fullscreen
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isFullscreen]);
 
   useEffect(() => {
     loadThreats();
@@ -369,36 +405,97 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
     threats.forEach(threat => addThreatMarker(threat));
   }, [threats, isLoaded, isMobile]);
 
-  const dynamicHeight = isExpanded 
-    ? (isMobile ? '70vh' : '600px')
-    : (isMobile ? '280px' : height);
+  const dynamicHeight = isFullscreen 
+    ? '100vh'
+    : isExpanded 
+      ? (isMobile ? '70vh' : '600px')
+      : (isMobile ? '280px' : height);
 
-  return (
-    <div 
-      className={cn(
-        "relative rounded-lg overflow-hidden transition-all duration-300",
-        className
-      )} 
-      style={{ height: dynamicHeight }}
-    >
+  const mapContent = (
+    <>
       <div ref={mapContainer} className="absolute inset-0" />
       
       {/* Overlay gradient */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-background/30 via-transparent to-transparent" />
       
-      {/* Mobile Controls */}
-      <div className={cn(
-        "absolute top-2 right-2 flex gap-1",
-        !isMobile && "top-4 right-14"
-      )}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="h-8 w-8 p-0 bg-card/80 backdrop-blur-sm border-border/50"
+      {/* Gesture Hints Overlay */}
+      {showGestureHints && isMobile && (
+        <div 
+          className="absolute inset-0 z-50 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 animate-fade-in"
+          onClick={dismissHints}
         >
-          {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-        </Button>
+          <div className="text-center space-y-6 max-w-xs">
+            <h3 className="text-lg font-bold text-foreground">Map Controls</h3>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                  <Move className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Drag to Pan</p>
+                  <p className="text-xs text-muted-foreground">Use one finger to move around the globe</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                  <ZoomIn className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Pinch to Zoom</p>
+                  <p className="text-xs text-muted-foreground">Use two fingers to zoom in and out</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                  <MousePointer2 className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Tap Markers</p>
+                  <p className="text-xs text-muted-foreground">Tap threat markers to see details</p>
+                </div>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={dismissHints}
+              className="w-full mt-4"
+            >
+              Got it
+            </Button>
+            
+            <p className="text-[10px] text-muted-foreground">Tap anywhere to dismiss</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Controls */}
+      <div className={cn(
+        "absolute flex gap-1 z-10",
+        isFullscreen ? "top-4 right-4" : (isMobile ? "top-2 right-2" : "top-4 right-14")
+      )}>
+        {isMobile && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleFullscreen}
+            className="h-8 w-8 p-0 bg-card/80 backdrop-blur-sm border-border/50"
+          >
+            {isFullscreen ? <X className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+        )}
+        {!isFullscreen && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="h-8 w-8 p-0 bg-card/80 backdrop-blur-sm border-border/50"
+          >
+            {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"
@@ -407,41 +504,45 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
         >
           <RotateCcw className="h-4 w-4" />
         </Button>
+        {isMobile && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowGestureHints(true)}
+            className="h-8 w-8 p-0 bg-card/80 backdrop-blur-sm border-border/50 text-[10px]"
+          >
+            ?
+          </Button>
+        )}
       </div>
 
-      {/* Stats - Compact on mobile */}
+      {/* Stats */}
       <div className={cn(
-        "absolute bg-card/80 backdrop-blur-sm rounded-lg border border-border/50",
-        isMobile ? "top-2 left-2 p-2" : "top-4 left-4 p-3"
+        "absolute bg-card/80 backdrop-blur-sm rounded-lg border border-border/50 z-10",
+        isFullscreen ? "top-4 left-4 p-3" : (isMobile ? "top-2 left-2 p-2" : "top-4 left-4 p-3")
       )}>
         <p className={cn(
           "text-muted-foreground mb-0.5",
-          isMobile ? "text-[9px]" : "text-xs"
+          isMobile && !isFullscreen ? "text-[9px]" : "text-xs"
         )}>ACTIVE THREATS</p>
         <p className={cn(
           "font-bold font-mono text-foreground",
-          isMobile ? "text-lg" : "text-2xl"
+          isMobile && !isFullscreen ? "text-lg" : "text-2xl"
         )}>{threats.length}</p>
       </div>
       
-      {/* Legend - Collapsible on mobile */}
-      {isMobile ? (
+      {/* Legend */}
+      {isMobile && !isFullscreen ? (
         <button
           onClick={() => setShowLegend(!showLegend)}
-          className={cn(
-            "absolute bottom-2 left-2 bg-card/80 backdrop-blur-sm rounded-lg border border-border/50 transition-all",
-            showLegend ? "p-2" : "p-2"
-          )}
+          className="absolute bottom-2 left-2 bg-card/80 backdrop-blur-sm rounded-lg border border-border/50 p-2 z-10"
         >
           {showLegend ? (
             <div className="space-y-1">
               <p className="text-[9px] text-muted-foreground font-semibold">THREATS ▼</p>
               {Object.entries(severityColors).map(([level, color]) => (
                 <div key={level} className="flex items-center gap-1.5">
-                  <div 
-                    className="w-2 h-2 rounded-full" 
-                    style={{ backgroundColor: color }} 
-                  />
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
                   <span className="text-[9px] text-foreground capitalize">{level}</span>
                 </div>
               ))}
@@ -451,7 +552,10 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
           )}
         </button>
       ) : (
-        <div className="absolute bottom-4 left-4 bg-card/80 backdrop-blur-sm rounded-lg p-3 border border-border/50">
+        <div className={cn(
+          "absolute bg-card/80 backdrop-blur-sm rounded-lg border border-border/50 z-10",
+          isFullscreen ? "bottom-4 left-4 p-3" : "bottom-4 left-4 p-3"
+        )}>
           <p className="text-xs text-muted-foreground mb-2 font-semibold">THREAT ORIGINS</p>
           <div className="space-y-1">
             {Object.entries(severityColors).map(([level, color]) => (
@@ -505,6 +609,29 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
           filter: invert(1);
         }
       `}</style>
+    </>
+  );
+
+  // Fullscreen portal
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-background">
+        <div className="relative w-full h-full">
+          {mapContent}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className={cn(
+        "relative rounded-lg overflow-hidden transition-all duration-300",
+        className
+      )} 
+      style={{ height: dynamicHeight }}
+    >
+      {mapContent}
     </div>
   );
 };
