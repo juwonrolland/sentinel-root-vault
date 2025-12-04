@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity } from "lucide-react";
+import { Activity, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LiveMetricCardProps {
@@ -12,6 +12,7 @@ interface LiveMetricCardProps {
   status?: "success" | "warning" | "critical" | "info";
   animate?: boolean;
   className?: string;
+  onClick?: () => void;
 }
 
 export const LiveMetricCard = ({
@@ -24,6 +25,7 @@ export const LiveMetricCard = ({
   status = "info",
   animate = true,
   className,
+  onClick,
 }: LiveMetricCardProps) => {
   const [displayValue, setDisplayValue] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -72,8 +74,10 @@ export const LiveMetricCard = ({
 
   return (
     <div
+      onClick={onClick}
       className={cn(
-        "metric-card group cursor-default transition-all duration-500",
+        "metric-card group transition-all duration-500",
+        onClick ? "cursor-pointer hover:scale-[1.02] active:scale-[0.98]" : "cursor-default",
         statusColors[status],
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
         className
@@ -86,6 +90,7 @@ export const LiveMetricCard = ({
       <div className="absolute top-4 right-4 flex items-center gap-2">
         <div className={cn("w-2 h-2 rounded-full animate-pulse", statusGlow[status])} />
         <span className="text-xs text-muted-foreground uppercase tracking-wider">Live</span>
+        {onClick && <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />}
       </div>
 
       {/* Icon */}
