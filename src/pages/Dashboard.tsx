@@ -44,6 +44,7 @@ import { ThreatAnalyticsChart } from "@/components/ThreatAnalyticsChart";
 import { ThreatStatsSummary } from "@/components/ThreatStatsSummary";
 import { AIThreatAnalyzer } from "@/components/AIThreatAnalyzer";
 import { LiveActivityFeed } from "@/components/LiveActivityFeed";
+import { MobileNavDrawer } from "@/components/MobileNavDrawer";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -229,6 +230,9 @@ const Dashboard = () => {
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              {/* Mobile Navigation Drawer */}
+              <MobileNavDrawer />
+              
               <div className="relative flex-shrink-0">
                 <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg sm:rounded-xl border border-primary/20 animate-pulse-glow">
                   <img 
@@ -238,7 +242,7 @@ const Dashboard = () => {
                   />
                 </div>
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 hidden sm:block">
                 <h1 className="text-sm sm:text-lg md:text-xl font-bold text-gradient tracking-tight truncate">
                   GLORIOUS GLOBAL SECURITY
                 </h1>
