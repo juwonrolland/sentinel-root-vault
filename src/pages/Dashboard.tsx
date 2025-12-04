@@ -32,6 +32,7 @@ import { RadarScanner } from "@/components/RadarScanner";
 import { ThreatLevelIndicator } from "@/components/ThreatLevelIndicator";
 import { NetworkTopology } from "@/components/NetworkTopology";
 import { ThreatIntelligenceFeed } from "@/components/ThreatIntelligenceFeed";
+import { GlobalThreatMap } from "@/components/GlobalThreatMap";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -394,6 +395,22 @@ const Dashboard = () => {
             </span>
           </div>
           <ThreatLevelIndicator level={threats > 0 ? 65 : 12} size="lg" />
+        </Card>
+
+        {/* Global Threat Map */}
+        <Card className="cyber-card mb-8 overflow-hidden">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Globe className="h-4 w-4 text-primary" />
+                Global Threat Origins
+              </CardTitle>
+              <span className="text-xs text-muted-foreground font-mono">REAL-TIME GEOLOCATION</span>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <GlobalThreatMap height="450px" />
+          </CardContent>
         </Card>
 
         {/* Feature Grid */}
