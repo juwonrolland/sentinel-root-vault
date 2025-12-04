@@ -3,6 +3,9 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Maximize2, Minimize2, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ThreatOrigin {
   id: string;
@@ -14,9 +17,8 @@ interface ThreatOrigin {
   timestamp: Date;
 }
 
-// Simulated IP geolocation data (in production, use a real IP geolocation service)
+// Simulated IP geolocation data
 const ipToLocation = (ip: string): { lat: number; lng: number } => {
-  // Generate deterministic but varied locations based on IP
   const hash = ip.split('.').reduce((acc, octet) => acc + parseInt(octet), 0);
   const regions = [
     { lat: 39.9, lng: 116.4 },   // Beijing
@@ -66,12 +68,14 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [threats, setThreats] = useState<ThreatOrigin[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const targetLocation = { lat: 37.7749, lng: -122.4194 }; // San Francisco (HQ)
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showLegend, setShowLegend] = useState(true);
+  const isMobile = useIsMobile();
+  const targetLocation = { lat: 37.7749, lng: -122.4194 };
 
   useEffect(() => {
     loadThreats();
 
-    // Real-time subscription
     const channel = supabase
       .channel('threat-map-events')
       .on(
@@ -96,7 +100,6 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
             };
             setThreats(prev => [newThreat, ...prev].slice(0, 50));
             
-            // Add animated marker for new threat
             if (map.current && isLoaded) {
               addThreatMarker(newThreat, true);
               drawAttackLine(newThreat);
@@ -117,7 +120,7 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
       .select('*')
       .not('source_ip', 'is', null)
       .order('detected_at', { ascending: false })
-      .limit(30);
+      .limit(isMobile ? 15 : 30);
 
     if (data && !error) {
       const threatOrigins = data.map(event => {
@@ -136,32 +139,34 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
     }
   };
 
+  const markerSize = isMobile ? 8 : 12;
+  const ringSize = isMobile ? 16 : 24;
+
   const addThreatMarker = (threat: ThreatOrigin, animate = false) => {
     if (!map.current) return;
 
     const el = document.createElement('div');
     el.className = 'threat-marker';
     el.style.cssText = `
-      width: 12px;
-      height: 12px;
+      width: ${markerSize}px;
+      height: ${markerSize}px;
       background: ${severityColors[threat.severity]};
       border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.3);
-      box-shadow: 0 0 15px ${severityColors[threat.severity]};
+      border: ${isMobile ? '1px' : '2px'} solid rgba(255,255,255,0.3);
+      box-shadow: 0 0 ${isMobile ? '8px' : '15px'} ${severityColors[threat.severity]};
       cursor: pointer;
       ${animate ? 'animation: pulse-marker 1s ease-out;' : ''}
     `;
 
-    // Add pulse ring for critical/high
-    if (threat.severity === 'critical' || threat.severity === 'high') {
+    if ((threat.severity === 'critical' || threat.severity === 'high') && !isMobile) {
       const ring = document.createElement('div');
       ring.style.cssText = `
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 24px;
-        height: 24px;
+        width: ${ringSize}px;
+        height: ${ringSize}px;
         border: 2px solid ${severityColors[threat.severity]};
         border-radius: 50%;
         animation: pulse-ring 2s ease-out infinite;
@@ -173,14 +178,18 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
     const marker = new mapboxgl.Marker({ element: el })
       .setLngLat([threat.lng, threat.lat])
       .setPopup(
-        new mapboxgl.Popup({ offset: 25 }).setHTML(`
-          <div style="background: #1a1a2e; color: #fff; padding: 8px; border-radius: 8px; min-width: 150px;">
-            <div style="font-weight: bold; color: ${severityColors[threat.severity]}; margin-bottom: 4px;">
+        new mapboxgl.Popup({ 
+          offset: isMobile ? 15 : 25,
+          closeButton: isMobile,
+          maxWidth: isMobile ? '200px' : '250px'
+        }).setHTML(`
+          <div style="background: #1a1a2e; color: #fff; padding: ${isMobile ? '6px' : '8px'}; border-radius: 8px; min-width: ${isMobile ? '120px' : '150px'};">
+            <div style="font-weight: bold; color: ${severityColors[threat.severity]}; margin-bottom: 4px; font-size: ${isMobile ? '11px' : '12px'};">
               ${threat.severity.toUpperCase()}
             </div>
-            <div style="font-size: 12px; margin-bottom: 4px;">${threat.event_type}</div>
-            <div style="font-size: 10px; color: #888;">IP: ${threat.source_ip}</div>
-            <div style="font-size: 10px; color: #888;">${threat.timestamp.toLocaleTimeString()}</div>
+            <div style="font-size: ${isMobile ? '10px' : '12px'}; margin-bottom: 4px;">${threat.event_type}</div>
+            <div style="font-size: ${isMobile ? '9px' : '10px'}; color: #888;">IP: ${threat.source_ip}</div>
+            <div style="font-size: ${isMobile ? '9px' : '10px'}; color: #888;">${threat.timestamp.toLocaleTimeString()}</div>
           </div>
         `)
       )
@@ -190,11 +199,10 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
   };
 
   const drawAttackLine = (threat: ThreatOrigin) => {
-    if (!map.current) return;
+    if (!map.current || isMobile) return; // Skip lines on mobile for performance
 
     const lineId = `attack-line-${threat.id}`;
     
-    // Create animated line from threat origin to target
     const line: GeoJSON.Feature<GeoJSON.LineString> = {
       type: 'Feature',
       properties: { severity: threat.severity },
@@ -207,7 +215,6 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
       }
     };
 
-    // Add source
     if (!map.current.getSource(lineId)) {
       map.current.addSource(lineId, {
         type: 'geojson',
@@ -230,7 +237,6 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
         }
       });
 
-      // Animate and remove line after delay
       setTimeout(() => {
         if (map.current?.getLayer(lineId)) {
           map.current.removeLayer(lineId);
@@ -240,6 +246,16 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
         }
       }, 5000);
     }
+  };
+
+  const resetMapView = () => {
+    if (!map.current) return;
+    map.current.easeTo({
+      center: [0, 20],
+      zoom: isMobile ? 0.8 : 1.5,
+      pitch: isMobile ? 0 : 30,
+      duration: 1000
+    });
   };
 
   useEffect(() => {
@@ -257,17 +273,33 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
       projection: 'globe',
-      zoom: 1.5,
+      zoom: isMobile ? 0.8 : 1.5,
       center: [0, 20],
-      pitch: 30,
+      pitch: isMobile ? 0 : 30,
+      dragRotate: !isMobile,
+      touchZoomRotate: true,
+      touchPitch: !isMobile,
     });
 
-    map.current.addControl(
-      new mapboxgl.NavigationControl({ visualizePitch: true }),
-      'top-right'
-    );
-
-    map.current.scrollZoom.disable();
+    // Mobile-friendly controls
+    if (isMobile) {
+      map.current.addControl(
+        new mapboxgl.NavigationControl({ 
+          showCompass: false,
+          visualizePitch: false 
+        }),
+        'bottom-right'
+      );
+      // Enable pinch-to-zoom
+      map.current.touchZoomRotate.enable();
+      map.current.touchZoomRotate.disableRotation();
+    } else {
+      map.current.addControl(
+        new mapboxgl.NavigationControl({ visualizePitch: true }),
+        'top-right'
+      );
+      map.current.scrollZoom.disable();
+    }
 
     map.current.on('style.load', () => {
       map.current?.setFog({
@@ -280,91 +312,160 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
 
     // Add target marker (HQ)
     const targetEl = document.createElement('div');
+    const targetSize = isMobile ? 14 : 20;
     targetEl.innerHTML = `
       <div style="
-        width: 20px;
-        height: 20px;
+        width: ${targetSize}px;
+        height: ${targetSize}px;
         background: #00d4ff;
         border-radius: 50%;
-        border: 3px solid #fff;
-        box-shadow: 0 0 30px #00d4ff;
-        animation: pulse-glow 2s ease-in-out infinite;
+        border: ${isMobile ? '2px' : '3px'} solid #fff;
+        box-shadow: 0 0 ${isMobile ? '15px' : '30px'} #00d4ff;
+        ${!isMobile ? 'animation: pulse-glow 2s ease-in-out infinite;' : ''}
       "></div>
     `;
 
     new mapboxgl.Marker({ element: targetEl })
       .setLngLat([targetLocation.lng, targetLocation.lat])
-      .setPopup(new mapboxgl.Popup().setHTML(`
-        <div style="background: #1a1a2e; color: #00d4ff; padding: 8px; border-radius: 8px;">
-          <div style="font-weight: bold;">🛡️ Security HQ</div>
-          <div style="font-size: 10px; color: #888;">Protected Infrastructure</div>
+      .setPopup(new mapboxgl.Popup({ maxWidth: isMobile ? '150px' : '200px' }).setHTML(`
+        <div style="background: #1a1a2e; color: #00d4ff; padding: ${isMobile ? '6px' : '8px'}; border-radius: 8px;">
+          <div style="font-weight: bold; font-size: ${isMobile ? '11px' : '12px'};">🛡️ Security HQ</div>
+          <div style="font-size: ${isMobile ? '9px' : '10px'}; color: #888;">Protected Infrastructure</div>
         </div>
       `))
       .addTo(map.current);
 
-    // Slow rotation
-    let userInteracting = false;
-    const spinGlobe = () => {
-      if (!map.current || userInteracting) return;
-      const zoom = map.current.getZoom();
-      if (zoom < 3) {
-        const center = map.current.getCenter();
-        center.lng -= 0.5;
-        map.current.easeTo({ center, duration: 1000, easing: n => n });
-      }
-    };
+    // Slow rotation - only on desktop
+    if (!isMobile) {
+      let userInteracting = false;
+      const spinGlobe = () => {
+        if (!map.current || userInteracting) return;
+        const zoom = map.current.getZoom();
+        if (zoom < 3) {
+          const center = map.current.getCenter();
+          center.lng -= 0.5;
+          map.current.easeTo({ center, duration: 1000, easing: n => n });
+        }
+      };
 
-    map.current.on('mousedown', () => { userInteracting = true; });
-    map.current.on('mouseup', () => { userInteracting = false; spinGlobe(); });
-    map.current.on('moveend', spinGlobe);
-    spinGlobe();
+      map.current.on('mousedown', () => { userInteracting = true; });
+      map.current.on('mouseup', () => { userInteracting = false; spinGlobe(); });
+      map.current.on('moveend', spinGlobe);
+      spinGlobe();
+    }
 
     return () => {
       markersRef.current.forEach(m => m.remove());
       map.current?.remove();
     };
-  }, []);
+  }, [isMobile]);
 
-  // Add markers when threats change and map is loaded
   useEffect(() => {
     if (!isLoaded || !map.current) return;
     
-    // Clear existing markers
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
     
-    // Add all threat markers
     threats.forEach(threat => addThreatMarker(threat));
-  }, [threats, isLoaded]);
+  }, [threats, isLoaded, isMobile]);
+
+  const dynamicHeight = isExpanded 
+    ? (isMobile ? '70vh' : '600px')
+    : (isMobile ? '280px' : height);
 
   return (
-    <div className={cn("relative rounded-lg overflow-hidden", className)} style={{ height }}>
+    <div 
+      className={cn(
+        "relative rounded-lg overflow-hidden transition-all duration-300",
+        className
+      )} 
+      style={{ height: dynamicHeight }}
+    >
       <div ref={mapContainer} className="absolute inset-0" />
       
       {/* Overlay gradient */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-background/30 via-transparent to-transparent" />
       
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-card/80 backdrop-blur-sm rounded-lg p-3 border border-border/50">
-        <p className="text-xs text-muted-foreground mb-2 font-semibold">THREAT ORIGINS</p>
-        <div className="space-y-1">
-          {Object.entries(severityColors).map(([level, color]) => (
-            <div key={level} className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }} 
-              />
-              <span className="text-xs text-foreground capitalize">{level}</span>
-            </div>
-          ))}
-        </div>
+      {/* Mobile Controls */}
+      <div className={cn(
+        "absolute top-2 right-2 flex gap-1",
+        !isMobile && "top-4 right-14"
+      )}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="h-8 w-8 p-0 bg-card/80 backdrop-blur-sm border-border/50"
+        >
+          {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={resetMapView}
+          className="h-8 w-8 p-0 bg-card/80 backdrop-blur-sm border-border/50"
+        >
+          <RotateCcw className="h-4 w-4" />
+        </Button>
       </div>
 
-      {/* Stats */}
-      <div className="absolute top-4 left-4 bg-card/80 backdrop-blur-sm rounded-lg p-3 border border-border/50">
-        <p className="text-xs text-muted-foreground mb-1">ACTIVE THREATS</p>
-        <p className="text-2xl font-bold font-mono text-foreground">{threats.length}</p>
+      {/* Stats - Compact on mobile */}
+      <div className={cn(
+        "absolute bg-card/80 backdrop-blur-sm rounded-lg border border-border/50",
+        isMobile ? "top-2 left-2 p-2" : "top-4 left-4 p-3"
+      )}>
+        <p className={cn(
+          "text-muted-foreground mb-0.5",
+          isMobile ? "text-[9px]" : "text-xs"
+        )}>ACTIVE THREATS</p>
+        <p className={cn(
+          "font-bold font-mono text-foreground",
+          isMobile ? "text-lg" : "text-2xl"
+        )}>{threats.length}</p>
       </div>
+      
+      {/* Legend - Collapsible on mobile */}
+      {isMobile ? (
+        <button
+          onClick={() => setShowLegend(!showLegend)}
+          className={cn(
+            "absolute bottom-2 left-2 bg-card/80 backdrop-blur-sm rounded-lg border border-border/50 transition-all",
+            showLegend ? "p-2" : "p-2"
+          )}
+        >
+          {showLegend ? (
+            <div className="space-y-1">
+              <p className="text-[9px] text-muted-foreground font-semibold">THREATS ▼</p>
+              {Object.entries(severityColors).map(([level, color]) => (
+                <div key={level} className="flex items-center gap-1.5">
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: color }} 
+                  />
+                  <span className="text-[9px] text-foreground capitalize">{level}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[9px] text-muted-foreground font-semibold">LEGEND ▶</p>
+          )}
+        </button>
+      ) : (
+        <div className="absolute bottom-4 left-4 bg-card/80 backdrop-blur-sm rounded-lg p-3 border border-border/50">
+          <p className="text-xs text-muted-foreground mb-2 font-semibold">THREAT ORIGINS</p>
+          <div className="space-y-1">
+            {Object.entries(severityColors).map(([level, color]) => (
+              <div key={level} className="flex items-center gap-2">
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }} 
+                />
+                <span className="text-xs text-foreground capitalize">{level}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* CSS for animations */}
       <style>{`
@@ -388,6 +489,20 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
         }
         .mapboxgl-popup-tip {
           display: none !important;
+        }
+        .mapboxgl-ctrl-group {
+          background: hsl(222 47% 8% / 0.8) !important;
+          border: 1px solid hsl(222 30% 18% / 0.5) !important;
+          backdrop-filter: blur(8px);
+        }
+        .mapboxgl-ctrl-group button {
+          background: transparent !important;
+        }
+        .mapboxgl-ctrl-group button:hover {
+          background: hsl(185 100% 50% / 0.1) !important;
+        }
+        .mapboxgl-ctrl-icon {
+          filter: invert(1);
         }
       `}</style>
     </div>
