@@ -28,6 +28,7 @@ import { LiveMetricCard } from "@/components/LiveMetricCard";
 import { RadarScanner } from "@/components/RadarScanner";
 import { ThreatLevelIndicator } from "@/components/ThreatLevelIndicator";
 import { NetworkTopology } from "@/components/NetworkTopology";
+import { ThreatIntelligenceFeed } from "@/components/ThreatIntelligenceFeed";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -288,36 +289,48 @@ const Dashboard = () => {
         </div>
 
         {/* Visualization Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Radar Scanner */}
-          <Card className="cyber-card overflow-hidden">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Radar className="h-4 w-4 text-primary" />
-                  Threat Radar
-                </CardTitle>
-                <span className="text-xs text-muted-foreground font-mono">SCANNING</span>
-              </div>
-            </CardHeader>
-            <CardContent className="flex justify-center py-4">
-              <RadarScanner size={180} threats={threats} />
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          {/* Left Column - Radar & Network */}
+          <div className="lg:col-span-8 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Radar Scanner */}
+              <Card className="cyber-card overflow-hidden">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <Radar className="h-4 w-4 text-primary" />
+                      Threat Radar
+                    </CardTitle>
+                    <span className="text-xs text-muted-foreground font-mono">SCANNING</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex justify-center py-4">
+                  <RadarScanner size={160} threats={threats} />
+                </CardContent>
+              </Card>
 
-          {/* Network Topology */}
-          <Card className="cyber-card lg:col-span-2 overflow-hidden">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-primary" />
-                  Network Infrastructure
-                </CardTitle>
-                <span className="text-xs text-muted-foreground font-mono">LIVE TOPOLOGY</span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <NetworkTopology />
+              {/* Network Topology */}
+              <Card className="cyber-card md:col-span-2 overflow-hidden">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-primary" />
+                      Network Infrastructure
+                    </CardTitle>
+                    <span className="text-xs text-muted-foreground font-mono">LIVE TOPOLOGY</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <NetworkTopology />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Right Column - Threat Intelligence Feed */}
+          <Card className="cyber-card lg:col-span-4 overflow-hidden">
+            <CardContent className="p-4 h-[400px]">
+              <ThreatIntelligenceFeed maxItems={12} />
             </CardContent>
           </Card>
         </div>
