@@ -33,6 +33,7 @@ import { RadarScanner } from "@/components/RadarScanner";
 import { useSecurityAlerts } from "@/hooks/useSecurityAlerts";
 import { useAlertPreferences } from "@/hooks/useAlertPreferences";
 import { AlertSettingsPanel } from "@/components/AlertSettingsPanel";
+import { AlertHistoryPanel } from "@/components/AlertHistoryPanel";
 import { ThreatLevelIndicator } from "@/components/ThreatLevelIndicator";
 import { NetworkTopology } from "@/components/NetworkTopology";
 import { ThreatIntelligenceFeed } from "@/components/ThreatIntelligenceFeed";
@@ -258,6 +259,8 @@ const Dashboard = () => {
                 onUpdatePreference={updatePreference}
                 onTestSound={() => playAlertSound("high")}
               />
+
+              <AlertHistoryPanel />
 
               <Button 
                 onClick={handleSignOut} 

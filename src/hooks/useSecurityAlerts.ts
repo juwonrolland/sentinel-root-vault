@@ -112,11 +112,32 @@ export const useSecurityAlerts = (options: UseSecurityAlertsOptions) => {
     }
   }, []);
 
+  // Save alert to history
+  const saveAlertToHistory = useCallback(async (event: SecurityEvent) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from("alert_history").insert({
+        user_id: user.id,
+        event_id: event.id,
+        event_type: event.event_type,
+        severity: event.severity,
+        description: event.description,
+      });
+    } catch (error) {
+      console.error("Error saving alert to history:", error);
+    }
+  }, []);
+
   // Handle incoming security event
-  const handleSecurityEvent = useCallback((event: SecurityEvent) => {
+  const handleSecurityEvent = useCallback(async (event: SecurityEvent) => {
     // Check severity filter
     if (preferences.criticalOnly && event.severity !== "critical") return;
     if (event.severity !== "critical" && event.severity !== "high") return;
+
+    // Save to alert history
+    saveAlertToHistory(event);
 
     // Play sound alert if enabled
     if (preferences.soundEnabled) {
@@ -134,7 +155,7 @@ export const useSecurityAlerts = (options: UseSecurityAlertsOptions) => {
       description: event.description || "Security event detected",
       duration: event.severity === "critical" ? 10000 : 5000,
     });
-  }, [preferences, playAlertSound, sendBrowserNotification]);
+  }, [preferences, playAlertSound, sendBrowserNotification, saveAlertToHistory]);
 
   // Set up real-time subscription
   useEffect(() => {
