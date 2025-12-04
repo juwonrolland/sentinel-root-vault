@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AlertPreferences } from "./useAlertPreferences";
 
 interface SecurityEvent {
   id: string;
@@ -15,7 +16,12 @@ const ALERT_SOUNDS = {
   high: [660, 0.4, 550, 0.4], // Warning tone
 };
 
-export const useSecurityAlerts = (enabled: boolean = true) => {
+interface UseSecurityAlertsOptions {
+  preferences: AlertPreferences;
+}
+
+export const useSecurityAlerts = (options: UseSecurityAlertsOptions) => {
+  const { preferences } = options;
   const audioContextRef = useRef<AudioContext | null>(null);
   const notificationPermissionRef = useRef<NotificationPermission>("default");
 
@@ -108,28 +114,34 @@ export const useSecurityAlerts = (enabled: boolean = true) => {
 
   // Handle incoming security event
   const handleSecurityEvent = useCallback((event: SecurityEvent) => {
+    // Check severity filter
+    if (preferences.criticalOnly && event.severity !== "critical") return;
     if (event.severity !== "critical" && event.severity !== "high") return;
 
-    // Play sound alert
-    playAlertSound(event.severity);
+    // Play sound alert if enabled
+    if (preferences.soundEnabled) {
+      playAlertSound(event.severity);
+    }
 
-    // Send browser notification
-    sendBrowserNotification(event);
+    // Send browser notification if enabled
+    if (preferences.notificationsEnabled) {
+      sendBrowserNotification(event);
+    }
 
-    // Show toast notification
+    // Show toast notification (always show)
     const toastFn = event.severity === "critical" ? toast.error : toast.warning;
     toastFn(`${event.severity.toUpperCase()}: ${event.event_type}`, {
       description: event.description || "Security event detected",
       duration: event.severity === "critical" ? 10000 : 5000,
     });
-  }, [playAlertSound, sendBrowserNotification]);
+  }, [preferences, playAlertSound, sendBrowserNotification]);
 
   // Set up real-time subscription
   useEffect(() => {
-    if (!enabled) return;
-
-    // Request permission on mount
-    requestNotificationPermission();
+    // Request permission on mount if notifications enabled
+    if (preferences.notificationsEnabled) {
+      requestNotificationPermission();
+    }
 
     const channel = supabase
       .channel("security-alerts")
@@ -154,7 +166,7 @@ export const useSecurityAlerts = (enabled: boolean = true) => {
         audioContextRef.current = null;
       }
     };
-  }, [enabled, handleSecurityEvent, requestNotificationPermission]);
+  }, [preferences.notificationsEnabled, handleSecurityEvent, requestNotificationPermission]);
 
   return {
     requestNotificationPermission,

@@ -31,6 +31,8 @@ import logo from "@/assets/logo.png";
 import { LiveMetricCard } from "@/components/LiveMetricCard";
 import { RadarScanner } from "@/components/RadarScanner";
 import { useSecurityAlerts } from "@/hooks/useSecurityAlerts";
+import { useAlertPreferences } from "@/hooks/useAlertPreferences";
+import { AlertSettingsPanel } from "@/components/AlertSettingsPanel";
 import { ThreatLevelIndicator } from "@/components/ThreatLevelIndicator";
 import { NetworkTopology } from "@/components/NetworkTopology";
 import { ThreatIntelligenceFeed } from "@/components/ThreatIntelligenceFeed";
@@ -48,8 +50,11 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Enable sound alerts and browser notifications for critical/high events
-  useSecurityAlerts(true);
+  // Alert preferences from local storage
+  const { preferences, updatePreference } = useAlertPreferences();
+  
+  // Enable sound alerts and browser notifications based on preferences
+  const { playAlertSound } = useSecurityAlerts({ preferences });
 
   useEffect(() => {
     // Auth check
@@ -247,6 +252,12 @@ const Dashboard = () => {
                   {currentTime.toLocaleTimeString('en-US', { hour12: false })}
                 </span>
               </div>
+
+              <AlertSettingsPanel
+                preferences={preferences}
+                onUpdatePreference={updatePreference}
+                onTestSound={() => playAlertSound("high")}
+              />
 
               <Button 
                 onClick={handleSignOut} 
