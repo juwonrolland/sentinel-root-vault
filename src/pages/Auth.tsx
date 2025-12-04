@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Shield } from "lucide-react";
+import { Shield, Lock, User, Mail, KeyRound, Eye, EyeOff, Loader2 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const Auth = () => {
@@ -15,8 +15,20 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [particles, setParticles] = useState<{ x: number; y: number; delay: number }[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Generate floating particles
+    const newParticles = Array.from({ length: 20 }, () => ({
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      delay: Math.random() * 5,
+    }));
+    setParticles(newParticles);
+  }, []);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,9 +38,7 @@ const Auth = () => {
       email,
       password,
       options: {
-        data: {
-          full_name: fullName,
-        },
+        data: { full_name: fullName },
         emailRedirectTo: `${window.location.origin}/`,
       },
     });
@@ -37,13 +47,13 @@ const Auth = () => {
 
     if (error) {
       toast({
-        title: "Sign up failed",
+        title: "Authorization Failed",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Success!",
+        title: "Access Granted",
         description: "Account created successfully. You can now sign in.",
       });
     }
@@ -52,10 +62,9 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Input validation
     if (!email || !password) {
       toast({
-        title: "Validation error",
+        title: "Validation Error",
         description: "Email and password are required",
         variant: "destructive",
       });
@@ -64,120 +73,263 @@ const Auth = () => {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     setLoading(false);
 
     if (error) {
       toast({
-        title: "Sign in failed",
+        title: "Authentication Failed",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Success",
-        description: "Signed in successfully",
+        title: "Access Granted",
+        description: "Welcome to the Security Intelligence Platform",
       });
       navigate("/dashboard");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 animate-fade-in">
-      <Card className="w-full max-w-md shadow-xl animate-scale-in">
-        <CardHeader className="text-center space-y-4">
-          <div className="flex flex-col items-center gap-3">
-            <div className="p-3 bg-primary/10 rounded-full">
-              <img src={logo} alt="Glorious Global Security Intelligence Platform Logo" className="h-16 w-16 object-contain" />
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-background">
+      {/* Animated background */}
+      <div className="absolute inset-0 cyber-grid opacity-30" />
+      
+      {/* Gradient orbs */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      
+      {/* Floating particles */}
+      {particles.map((particle, i) => (
+        <div
+          key={i}
+          className="absolute w-1 h-1 bg-primary/30 rounded-full animate-float"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            animationDelay: `${particle.delay}s`,
+          }}
+        />
+      ))}
+
+      {/* Scan line effect */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-scan" />
+      </div>
+
+      <Card className="w-full max-w-md cyber-card backdrop-blur-xl animate-scale-in relative z-10">
+        {/* Top glow line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
+        
+        <CardHeader className="text-center space-y-6 pt-8">
+          {/* Logo container */}
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              {/* Outer ring */}
+              <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse scale-125" />
+              {/* Inner glow */}
+              <div className="p-4 bg-gradient-to-br from-primary/20 to-accent/10 rounded-full border border-primary/30 shadow-glow">
+                <img 
+                  src={logo} 
+                  alt="GGSIP Logo" 
+                  className="h-16 w-16 object-contain" 
+                />
+              </div>
+              {/* Status indicator */}
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-background animate-pulse" />
             </div>
-            <h1 className="text-lg sm:text-xl md:text-2xl font-bold leading-tight px-4 text-foreground">
-              Glorious Global Security Intelligence Platform
-            </h1>
+            
+            <div className="space-y-2">
+              <h1 className="text-xl md:text-2xl font-bold text-gradient tracking-tight">
+                GLORIOUS GLOBAL SECURITY
+              </h1>
+              <p className="text-xs font-mono text-muted-foreground tracking-widest">
+                INTELLIGENCE PLATFORM
+              </p>
+            </div>
           </div>
-          <CardDescription className="text-sm">Advanced Intelligence Network System</CardDescription>
+          
+          <CardDescription className="text-muted-foreground flex items-center justify-center gap-2">
+            <Lock className="h-4 w-4 text-primary" />
+            <span>Secure Authentication Required</span>
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        
+        <CardContent className="pb-8">
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-secondary/50">
+              <TabsTrigger 
+                value="signin" 
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                <KeyRound className="h-4 w-4 mr-2" />
+                Sign In
+              </TabsTrigger>
+              <TabsTrigger 
+                value="signup"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Register
+              </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="signin">
+            <TabsContent value="signin" className="space-y-4">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email-signin">Email</Label>
-                  <Input
-                    id="email-signin"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Label htmlFor="email-signin" className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email-signin"
+                      type="email"
+                      placeholder="operator@domain.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password-signin">Password</Label>
-                  <Input
-                    id="password-signin"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <Label htmlFor="password-signin" className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password-signin"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="pl-10 pr-10 bg-secondary/50 border-border/50 focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Signing in..." : "Sign In"}
+                <Button 
+                  type="submit" 
+                  className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-semibold transition-all hover:shadow-glow" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Authenticating...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="mr-2 h-4 w-4" />
+                      Access System
+                    </>
+                  )}
                 </Button>
               </form>
             </TabsContent>
             
-            <TabsContent value="signup">
+            <TabsContent value="signup" className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullname">Full Name</Label>
-                  <Input
-                    id="fullname"
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
+                  <Label htmlFor="fullname" className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Full Name
+                  </Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="fullname"
+                      type="text"
+                      placeholder="Agent Name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                      className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email-signup">Email</Label>
-                  <Input
-                    id="email-signup"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Label htmlFor="email-signup" className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email-signup"
+                      type="email"
+                      placeholder="operator@domain.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password-signup">Password</Label>
-                  <Input
-                    id="password-signup"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
+                  <Label htmlFor="password-signup" className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password-signup"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className="pl-10 pr-10 bg-secondary/50 border-border/50 focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Creating account..." : "Create Account"}
+                <Button 
+                  type="submit" 
+                  className="w-full bg-primary hover:bg-primary-light text-primary-foreground font-semibold transition-all hover:shadow-glow" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    <>
+                      <User className="mr-2 h-4 w-4" />
+                      Create Account
+                    </>
+                  )}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
+          
+          {/* Security notice */}
+          <div className="mt-6 pt-4 border-t border-border/30">
+            <p className="text-xs text-center text-muted-foreground font-mono">
+              <Lock className="inline h-3 w-3 mr-1" />
+              256-BIT AES ENCRYPTED // SECURE CONNECTION
+            </p>
+          </div>
         </CardContent>
+        
+        {/* Bottom glow line */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
       </Card>
     </div>
   );

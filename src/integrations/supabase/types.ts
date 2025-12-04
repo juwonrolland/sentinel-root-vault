@@ -55,7 +55,7 @@ export type Database = {
           created_at: string | null
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_valid: boolean | null
           last_activity: string | null
           session_token: string
@@ -66,7 +66,7 @@ export type Database = {
           created_at?: string | null
           expires_at: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_valid?: boolean | null
           last_activity?: string | null
           session_token: string
@@ -77,7 +77,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_valid?: boolean | null
           last_activity?: string | null
           session_token?: string
@@ -295,7 +295,7 @@ export type Database = {
           event_type: string
           failure_reason: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           resource_accessed: string | null
           severity: string
@@ -310,7 +310,7 @@ export type Database = {
           event_type: string
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_accessed?: string | null
           severity: string
@@ -325,7 +325,7 @@ export type Database = {
           event_type?: string
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_accessed?: string | null
           severity?: string
@@ -515,10 +515,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      invalidate_expired_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      invalidate_expired_sessions: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "analyst" | "viewer"
