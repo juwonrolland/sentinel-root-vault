@@ -45,6 +45,7 @@ import { ThreatStatsSummary } from "@/components/ThreatStatsSummary";
 import { AIThreatAnalyzer } from "@/components/AIThreatAnalyzer";
 import { LiveActivityFeed } from "@/components/LiveActivityFeed";
 import { MobileNavDrawer } from "@/components/MobileNavDrawer";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -53,6 +54,7 @@ const Dashboard = () => {
   const [systemHealth, setSystemHealth] = useState(100);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [simulating, setSimulating] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -108,6 +110,18 @@ const Dashboard = () => {
 
     setThreats(threatsData.count || 0);
     setEvents(eventsData.count || 0);
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadDashboardData();
+    // Small delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setIsRefreshing(false);
+    toast({
+      title: "Data Refreshed",
+      description: "Dashboard data has been updated",
+    });
   };
 
   const simulateSecurityEvent = async () => {
@@ -224,7 +238,8 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background cyber-grid">
+    <PullToRefresh onRefresh={handleRefresh} className="min-h-screen">
+      <div className="min-h-screen bg-background cyber-grid">
       {/* Header */}
       <header className="border-b border-border/50 bg-card/50 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
@@ -560,6 +575,7 @@ const Dashboard = () => {
         </footer>
       </main>
     </div>
+    </PullToRefresh>
   );
 };
 
