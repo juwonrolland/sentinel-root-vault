@@ -21,8 +21,11 @@ import {
   LogOut,
   ChevronRight,
   Fingerprint,
-  Scan
+  Scan,
+  FlaskConical,
+  Loader2
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 import { LiveMetricCard } from "@/components/LiveMetricCard";
 import { RadarScanner } from "@/components/RadarScanner";
@@ -36,7 +39,9 @@ const Dashboard = () => {
   const [events, setEvents] = useState(0);
   const [systemHealth, setSystemHealth] = useState(100);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [simulating, setSimulating] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Auth check
@@ -84,6 +89,29 @@ const Dashboard = () => {
 
     setThreats(threatsData.count || 0);
     setEvents(eventsData.count || 0);
+  };
+
+  const simulateSecurityEvent = async () => {
+    setSimulating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('simulate-security-event');
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Event Simulated",
+        description: `${data.event?.event_type} (${data.event?.severity?.toUpperCase()})`,
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast({
+        title: "Simulation Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setSimulating(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -329,8 +357,27 @@ const Dashboard = () => {
 
           {/* Right Column - Threat Intelligence Feed */}
           <Card className="cyber-card lg:col-span-4 overflow-hidden">
-            <CardContent className="p-4 h-[400px]">
-              <ThreatIntelligenceFeed maxItems={12} />
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-medium">Intelligence Feed</CardTitle>
+              <Button
+                onClick={simulateSecurityEvent}
+                disabled={simulating}
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+              >
+                {simulating ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <>
+                    <FlaskConical className="h-3 w-3 mr-1" />
+                    Simulate
+                  </>
+                )}
+              </Button>
+            </CardHeader>
+            <CardContent className="p-4 h-[350px]">
+              <ThreatIntelligenceFeed maxItems={10} />
             </CardContent>
           </Card>
         </div>
