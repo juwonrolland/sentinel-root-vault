@@ -313,6 +313,7 @@ const Dashboard = () => {
             status={threats > 0 ? "critical" : "success"}
             trend={threats > 0 ? "up" : "neutral"}
             trendValue={threats > 0 ? "Requires attention" : "All clear"}
+            onClick={() => navigate("/threat-detection")}
           />
           <LiveMetricCard
             title="Security Events"
@@ -321,6 +322,7 @@ const Dashboard = () => {
             status="info"
             trend="neutral"
             trendValue="Last 24h"
+            onClick={() => navigate("/security-dashboard")}
           />
           <LiveMetricCard
             title="System Health"
@@ -330,6 +332,7 @@ const Dashboard = () => {
             status="success"
             trend="up"
             trendValue="Optimal"
+            onClick={() => navigate("/system-health")}
           />
           <LiveMetricCard
             title="Protection Level"
@@ -339,6 +342,7 @@ const Dashboard = () => {
             trend="neutral"
             trendValue="Enterprise Grade"
             animate={false}
+            onClick={() => navigate("/security-compliance")}
           />
         </div>
 
