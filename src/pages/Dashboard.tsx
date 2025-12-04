@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 import { LiveMetricCard } from "@/components/LiveMetricCard";
 import { RadarScanner } from "@/components/RadarScanner";
+import { useSecurityAlerts } from "@/hooks/useSecurityAlerts";
 import { ThreatLevelIndicator } from "@/components/ThreatLevelIndicator";
 import { NetworkTopology } from "@/components/NetworkTopology";
 import { ThreatIntelligenceFeed } from "@/components/ThreatIntelligenceFeed";
@@ -46,6 +47,9 @@ const Dashboard = () => {
   const [simulating, setSimulating] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Enable sound alerts and browser notifications for critical/high events
+  useSecurityAlerts(true);
 
   useEffect(() => {
     // Auth check
