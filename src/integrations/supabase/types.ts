@@ -86,6 +86,42 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_history: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          created_at: string
+          description: string | null
+          event_id: string | null
+          event_type: string
+          id: string
+          severity: string
+          user_id: string | null
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          created_at?: string
+          description?: string | null
+          event_id?: string | null
+          event_type: string
+          id?: string
+          severity: string
+          user_id?: string | null
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          created_at?: string
+          description?: string | null
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          severity?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       api_rate_limits: {
         Row: {
           endpoint: string
