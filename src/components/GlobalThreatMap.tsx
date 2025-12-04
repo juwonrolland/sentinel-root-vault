@@ -4,7 +4,9 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Maximize2, Minimize2, RotateCcw, X, Move, ZoomIn, MousePointer2 } from 'lucide-react';
+import { useHapticFeedback } from '@/hooks/useHapticFeedback';
+import { useOfflineMode } from '@/hooks/useOfflineMode';
+import { Maximize2, Minimize2, RotateCcw, X, Move, ZoomIn, MousePointer2, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ThreatOrigin {
@@ -72,8 +74,12 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showLegend, setShowLegend] = useState(true);
   const [showGestureHints, setShowGestureHints] = useState(false);
+  const [isUsingCache, setIsUsingCache] = useState(false);
   const isMobile = useIsMobile();
+  const { lightTap, mediumTap, warning } = useHapticFeedback();
+  const { isOnline, cacheData, getCachedData, getCacheAge } = useOfflineMode();
   const targetLocation = { lat: 37.7749, lng: -122.4194 };
+  const CACHE_KEY = 'threat-map-data';
 
   // Check if user has seen hints before
   useEffect(() => {
@@ -84,14 +90,15 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
   }, [isMobile]);
 
   const dismissHints = () => {
+    lightTap();
     setShowGestureHints(false);
     localStorage.setItem('map-gesture-hints-seen', 'true');
   };
 
   // Handle fullscreen mode
   const toggleFullscreen = () => {
+    mediumTap();
     setIsFullscreen(!isFullscreen);
-    // Resize map after state change
     setTimeout(() => {
       map.current?.resize();
     }, 100);
@@ -151,27 +158,41 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
   }, [isLoaded]);
 
   const loadThreats = async () => {
-    const { data, error } = await supabase
-      .from('security_events')
-      .select('*')
-      .not('source_ip', 'is', null)
-      .order('detected_at', { ascending: false })
-      .limit(isMobile ? 15 : 30);
+    // Try to load from network first
+    if (isOnline) {
+      const { data, error } = await supabase
+        .from('security_events')
+        .select('*')
+        .not('source_ip', 'is', null)
+        .order('detected_at', { ascending: false })
+        .limit(isMobile ? 15 : 30);
 
-    if (data && !error) {
-      const threatOrigins = data.map(event => {
-        const location = ipToLocation(event.source_ip || '0.0.0.0');
-        return {
-          id: event.id,
-          lat: location.lat,
-          lng: location.lng,
-          severity: event.severity as ThreatOrigin['severity'],
-          event_type: event.event_type,
-          source_ip: event.source_ip || '',
-          timestamp: new Date(event.detected_at || new Date())
-        };
-      });
-      setThreats(threatOrigins);
+      if (data && !error) {
+        const threatOrigins = data.map(event => {
+          const location = ipToLocation(event.source_ip || '0.0.0.0');
+          return {
+            id: event.id,
+            lat: location.lat,
+            lng: location.lng,
+            severity: event.severity as ThreatOrigin['severity'],
+            event_type: event.event_type,
+            source_ip: event.source_ip || '',
+            timestamp: new Date(event.detected_at || new Date())
+          };
+        });
+        setThreats(threatOrigins);
+        setIsUsingCache(false);
+        // Cache for offline use
+        cacheData(CACHE_KEY, threatOrigins, 30); // Cache for 30 minutes
+      }
+    } else {
+      // Load from cache when offline
+      const cached = getCachedData<ThreatOrigin[]>(CACHE_KEY);
+      if (cached) {
+        setThreats(cached.map(t => ({ ...t, timestamp: new Date(t.timestamp) })));
+        setIsUsingCache(true);
+        warning(); // Haptic feedback for offline mode
+      }
     }
   };
 
@@ -193,6 +214,15 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
       cursor: pointer;
       ${animate ? 'animation: pulse-marker 1s ease-out;' : ''}
     `;
+
+    // Add haptic feedback on marker tap
+    el.addEventListener('click', () => {
+      if (threat.severity === 'critical') {
+        warning();
+      } else {
+        lightTap();
+      }
+    });
 
     if ((threat.severity === 'critical' || threat.severity === 'high') && !isMobile) {
       const ring = document.createElement('div');
@@ -490,7 +520,7 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={() => { lightTap(); setIsExpanded(!isExpanded); }}
             className="h-8 w-8 p-0 bg-card/80 backdrop-blur-sm border-border/50"
           >
             {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -499,7 +529,7 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
         <Button
           variant="outline"
           size="sm"
-          onClick={resetMapView}
+          onClick={() => { lightTap(); resetMapView(); }}
           className="h-8 w-8 p-0 bg-card/80 backdrop-blur-sm border-border/50"
         >
           <RotateCcw className="h-4 w-4" />
@@ -508,7 +538,7 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowGestureHints(true)}
+            onClick={() => { lightTap(); setShowGestureHints(true); }}
             className="h-8 w-8 p-0 bg-card/80 backdrop-blur-sm border-border/50 text-[10px]"
           >
             ?
@@ -521,20 +551,34 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
         "absolute bg-card/80 backdrop-blur-sm rounded-lg border border-border/50 z-10",
         isFullscreen ? "top-4 left-4 p-3" : (isMobile ? "top-2 left-2 p-2" : "top-4 left-4 p-3")
       )}>
-        <p className={cn(
-          "text-muted-foreground mb-0.5",
-          isMobile && !isFullscreen ? "text-[9px]" : "text-xs"
-        )}>ACTIVE THREATS</p>
+        <div className="flex items-center gap-2">
+          <p className={cn(
+            "text-muted-foreground",
+            isMobile && !isFullscreen ? "text-[9px]" : "text-xs"
+          )}>ACTIVE THREATS</p>
+          {isUsingCache && (
+            <div className="flex items-center gap-1 text-warning">
+              <WifiOff className="h-3 w-3" />
+              <span className={cn(
+                "text-[8px]",
+                !isMobile && "text-[10px]"
+              )}>CACHED</span>
+            </div>
+          )}
+        </div>
         <p className={cn(
           "font-bold font-mono text-foreground",
           isMobile && !isFullscreen ? "text-lg" : "text-2xl"
         )}>{threats.length}</p>
+        {isUsingCache && (
+          <p className="text-[8px] text-muted-foreground">{getCacheAge(CACHE_KEY)}</p>
+        )}
       </div>
       
       {/* Legend */}
       {isMobile && !isFullscreen ? (
         <button
-          onClick={() => setShowLegend(!showLegend)}
+          onClick={() => { lightTap(); setShowLegend(!showLegend); }}
           className="absolute bottom-2 left-2 bg-card/80 backdrop-blur-sm rounded-lg border border-border/50 p-2 z-10"
         >
           {showLegend ? (
