@@ -1,1 +1,4 @@
 project_id = "quzmyajnnwwxursoxrgw"
+
+[functions.simulate-security-event]
+verify_jwt = false
