@@ -1,18 +1,19 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Shield,
   AlertTriangle,
   Lock,
   Globe,
-  Server,
-  Wifi,
-  Activity,
   Cpu,
-  Database,
+  Activity,
   Eye,
   Zap,
+  Database,
+  Wifi,
+  Server,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ interface ActivityEvent {
   severity?: "info" | "warning" | "critical";
   timestamp: Date;
   source?: string;
+  isReal?: boolean;
 }
 
 interface LiveActivityFeedProps {
@@ -67,23 +69,73 @@ const generateMockActivity = (): ActivityEvent => {
     severity,
     timestamp: new Date(),
     source: sources[Math.floor(Math.random() * sources.length)],
+    isReal: false,
   };
 };
 
 export const LiveActivityFeed = ({ maxItems = 20, className }: LiveActivityFeedProps) => {
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [eventCount, setEventCount] = useState(0);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Generate initial activities
-    const initial = Array.from({ length: 8 }, () => ({
+    // Load initial real data from Supabase
+    loadRealData();
+
+    // Subscribe to real-time events
+    const channel = supabase
+      .channel('live-activity-feed')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'security_events'
+      }, (payload) => {
+        const event = payload.new as any;
+        const newActivity: ActivityEvent = {
+          id: event.id,
+          type: 'security',
+          action: event.event_type,
+          details: event.description || 'Security event detected',
+          severity: event.severity === 'critical' ? 'critical' : event.severity === 'high' ? 'warning' : 'info',
+          timestamp: new Date(event.detected_at),
+          source: event.source_ip || 'Unknown',
+          isReal: true,
+        };
+        setActivities(prev => [newActivity, ...prev].slice(0, maxItems));
+        setEventCount(prev => prev + 1);
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'access_logs'
+      }, (payload) => {
+        const log = payload.new as any;
+        const newActivity: ActivityEvent = {
+          id: log.id,
+          type: 'access',
+          action: log.action,
+          details: `Resource: ${log.resource}`,
+          severity: log.success ? 'info' : 'warning',
+          timestamp: new Date(log.timestamp),
+          source: log.ip_address || 'Unknown',
+          isReal: true,
+        };
+        setActivities(prev => [newActivity, ...prev].slice(0, maxItems));
+        setEventCount(prev => prev + 1);
+      })
+      .subscribe((status) => {
+        setIsConnected(status === 'SUBSCRIBED');
+      });
+
+    // Generate initial mock activities
+    const initial = Array.from({ length: 5 }, () => ({
       ...generateMockActivity(),
       timestamp: new Date(Date.now() - Math.random() * 300000),
     }));
-    setActivities(initial.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
-    setEventCount(initial.length);
+    setActivities(prev => [...prev, ...initial].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, maxItems));
+    setEventCount(prev => prev + initial.length);
 
-    // Add new activities periodically
+    // Add new mock activities periodically
     const interval = setInterval(() => {
       setActivities((prev) => {
         const newActivity = generateMockActivity();
@@ -91,10 +143,61 @@ export const LiveActivityFeed = ({ maxItems = 20, className }: LiveActivityFeedP
         return updated;
       });
       setEventCount(prev => prev + 1);
-    }, 2500 + Math.random() * 3000);
+    }, 4000 + Math.random() * 4000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [maxItems]);
+
+  const loadRealData = async () => {
+    // Load recent security events
+    const { data: securityEvents } = await supabase
+      .from('security_events')
+      .select('*')
+      .order('detected_at', { ascending: false })
+      .limit(5);
+
+    if (securityEvents) {
+      const realActivities = securityEvents.map(event => ({
+        id: event.id,
+        type: 'security' as const,
+        action: event.event_type,
+        details: event.description || 'Security event detected',
+        severity: (event.severity === 'critical' ? 'critical' : event.severity === 'high' ? 'warning' : 'info') as ActivityEvent['severity'],
+        timestamp: new Date(event.detected_at || new Date()),
+        source: event.source_ip || 'Unknown',
+        isReal: true,
+      }));
+      
+      setActivities(prev => [...realActivities, ...prev].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, maxItems));
+      setEventCount(prev => prev + realActivities.length);
+    }
+
+    // Load recent access logs
+    const { data: accessLogs } = await supabase
+      .from('access_logs')
+      .select('*')
+      .order('timestamp', { ascending: false })
+      .limit(3);
+
+    if (accessLogs) {
+      const accessActivities = accessLogs.map(log => ({
+        id: log.id,
+        type: 'access' as const,
+        action: log.action,
+        details: `Resource: ${log.resource}`,
+        severity: (log.success ? 'info' : 'warning') as ActivityEvent['severity'],
+        timestamp: new Date(log.timestamp || new Date()),
+        source: log.ip_address || 'Unknown',
+        isReal: true,
+      }));
+      
+      setActivities(prev => [...accessActivities, ...prev].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, maxItems));
+      setEventCount(prev => prev + accessActivities.length);
+    }
+  };
 
   const getTypeIcon = (type: ActivityEvent["type"]) => {
     switch (type) {
@@ -139,7 +242,10 @@ export const LiveActivityFeed = ({ maxItems = 20, className }: LiveActivityFeedP
         <div className="flex items-center gap-2">
           <div className="relative">
             <Activity className="h-4 w-4 text-primary" />
-            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-success animate-pulse" />
+            <div className={cn(
+              "absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full animate-pulse",
+              isConnected ? "bg-success" : "bg-warning"
+            )} />
           </div>
           <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Live Activity</span>
         </div>
@@ -170,6 +276,9 @@ export const LiveActivityFeed = ({ maxItems = 20, className }: LiveActivityFeedP
                     {activity.severity === "critical" && (
                       <AlertTriangle className="h-3 w-3 text-destructive flex-shrink-0 animate-pulse" />
                     )}
+                    {activity.isReal && (
+                      <span className="text-[8px] text-primary font-mono bg-primary/10 px-1 rounded">REAL</span>
+                    )}
                   </div>
                   <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                     {activity.details}
@@ -197,8 +306,16 @@ export const LiveActivityFeed = ({ maxItems = 20, className }: LiveActivityFeedP
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-          <span className="text-[10px] text-success font-mono">LIVE</span>
+          <div className={cn(
+            "w-1.5 h-1.5 rounded-full animate-pulse",
+            isConnected ? "bg-success" : "bg-warning"
+          )} />
+          <span className={cn(
+            "text-[10px] font-mono",
+            isConnected ? "text-success" : "text-warning"
+          )}>
+            {isConnected ? "LIVE" : "CONNECTING"}
+          </span>
         </div>
       </div>
     </div>
