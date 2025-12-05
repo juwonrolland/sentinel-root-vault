@@ -4,6 +4,7 @@ export interface AlertPreferences {
   soundEnabled: boolean;
   notificationsEnabled: boolean;
   criticalOnly: boolean;
+  pushEnabled: boolean;
 }
 
 const STORAGE_KEY = "security-alert-preferences";
@@ -12,6 +13,7 @@ const defaultPreferences: AlertPreferences = {
   soundEnabled: true,
   notificationsEnabled: true,
   criticalOnly: false,
+  pushEnabled: true,
 };
 
 export const useAlertPreferences = () => {
