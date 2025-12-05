@@ -7,8 +7,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Settings2, Volume2, VolumeX, Bell, BellOff, AlertTriangle } from "lucide-react";
+import { Settings2, Volume2, VolumeX, Bell, BellOff, AlertTriangle, Smartphone } from "lucide-react";
 import { AlertPreferences } from "@/hooks/useAlertPreferences";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 interface AlertSettingsPanelProps {
   preferences: AlertPreferences;
@@ -25,6 +26,18 @@ export const AlertSettingsPanel = ({
   onTestSound,
 }: AlertSettingsPanelProps) => {
   const [open, setOpen] = useState(false);
+  const { permission, requestPermission, sendTestNotification } = usePushNotifications({ enabled: false });
+
+  const handlePushToggle = async (checked: boolean) => {
+    if (checked && permission !== 'granted') {
+      const granted = await requestPermission();
+      if (granted) {
+        onUpdatePreference("pushEnabled", true);
+      }
+    } else {
+      onUpdatePreference("pushEnabled", checked);
+    }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -79,10 +92,10 @@ export const AlertSettingsPanel = ({
               )}
               <div>
                 <Label htmlFor="notification-toggle" className="text-sm font-medium">
-                  Push Notifications
+                  In-App Notifications
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Browser notifications
+                  Toast notifications
                 </p>
               </div>
             </div>
@@ -90,6 +103,26 @@ export const AlertSettingsPanel = ({
               id="notification-toggle"
               checked={preferences.notificationsEnabled}
               onCheckedChange={(checked) => onUpdatePreference("notificationsEnabled", checked)}
+            />
+          </div>
+
+          {/* Push Notifications */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Smartphone className={`h-4 w-4 ${preferences.pushEnabled ? "text-success" : "text-muted-foreground"}`} />
+              <div>
+                <Label htmlFor="push-toggle" className="text-sm font-medium">
+                  Push Notifications
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Background alerts
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="push-toggle"
+              checked={preferences.pushEnabled && permission === 'granted'}
+              onCheckedChange={handlePushToggle}
             />
           </div>
 
@@ -113,9 +146,9 @@ export const AlertSettingsPanel = ({
             />
           </div>
 
-          {/* Test Button */}
-          {onTestSound && preferences.soundEnabled && (
-            <div className="pt-2 border-t border-border/50">
+          {/* Test Buttons */}
+          <div className="pt-2 border-t border-border/50 space-y-2">
+            {onTestSound && preferences.soundEnabled && (
               <Button
                 variant="outline"
                 size="sm"
@@ -125,8 +158,19 @@ export const AlertSettingsPanel = ({
                 <Volume2 className="h-3 w-3 mr-2" />
                 Test Alert Sound
               </Button>
-            </div>
-          )}
+            )}
+            {preferences.pushEnabled && permission === 'granted' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs"
+                onClick={sendTestNotification}
+              >
+                <Smartphone className="h-3 w-3 mr-2" />
+                Test Push Notification
+              </Button>
+            )}
+          </div>
         </div>
       </PopoverContent>
     </Popover>
