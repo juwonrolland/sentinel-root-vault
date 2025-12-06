@@ -7,18 +7,36 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, ArrowLeft, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileText, ArrowLeft, Plus, ChevronRight, Activity, Clock, Shield, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import IncidentWorkflow from "@/components/IncidentWorkflow";
+import IncidentTimeline from "@/components/IncidentTimeline";
+import IncidentActions from "@/components/IncidentActions";
+
+interface TimelineEvent {
+  id: string;
+  type: 'status_change' | 'note' | 'assignment' | 'detection';
+  title: string;
+  description?: string;
+  timestamp: string;
+  user?: string;
+  status?: string;
+}
 
 const IncidentResponse = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [incidents, setIncidents] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
+  const [selectedIncident, setSelectedIncident] = useState<any | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [severity, setSeverity] = useState<string>("medium");
+  const [timelineEvents, setTimelineEvents] = useState<Map<string, TimelineEvent[]>>(new Map());
 
   useEffect(() => {
     checkAuth();
@@ -112,8 +130,77 @@ const IncidentResponse = () => {
         variant: "destructive",
       });
     } else {
+      // Add timeline event
+      addTimelineEvent(id, {
+        id: crypto.randomUUID(),
+        type: 'status_change',
+        title: `Status changed to ${status}`,
+        timestamp: new Date().toISOString(),
+        status,
+      });
       loadIncidents();
+      
+      if (selectedIncident?.id === id) {
+        setSelectedIncident((prev: any) => prev ? { ...prev, status } : null);
+      }
     }
+  };
+
+  const addTimelineEvent = (incidentId: string, event: TimelineEvent) => {
+    setTimelineEvents(prev => {
+      const newMap = new Map(prev);
+      const existing = newMap.get(incidentId) || [];
+      newMap.set(incidentId, [event, ...existing]);
+      return newMap;
+    });
+  };
+
+  const handleAddNote = (incidentId: string, note: string) => {
+    addTimelineEvent(incidentId, {
+      id: crypto.randomUUID(),
+      type: 'note',
+      title: 'Note Added',
+      description: note,
+      timestamp: new Date().toISOString(),
+      user: 'Current User',
+    });
+    
+    toast({
+      title: "Note Added",
+      description: "Investigation note has been saved",
+    });
+  };
+
+  const handleActionExecuted = (actionName: string) => {
+    if (selectedIncident) {
+      addTimelineEvent(selectedIncident.id, {
+        id: crypto.randomUUID(),
+        type: 'assignment',
+        title: `Action Executed: ${actionName}`,
+        timestamp: new Date().toISOString(),
+        user: 'Current User',
+      });
+    }
+  };
+
+  const openIncidentDetails = (incident: any) => {
+    // Initialize timeline if not exists
+    if (!timelineEvents.has(incident.id)) {
+      setTimelineEvents(prev => {
+        const newMap = new Map(prev);
+        newMap.set(incident.id, [{
+          id: crypto.randomUUID(),
+          type: 'detection',
+          title: 'Incident Detected',
+          description: incident.description || 'Security incident detected and logged',
+          timestamp: incident.created_at,
+          status: 'open',
+        }]);
+        return newMap;
+      });
+    }
+    setSelectedIncident(incident);
+    setSheetOpen(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -281,20 +368,29 @@ const IncidentResponse = () => {
         <Card>
           <CardHeader>
             <CardTitle>Active Incidents</CardTitle>
-            <CardDescription>Track and manage security incidents</CardDescription>
+            <CardDescription>Track and manage security incidents - click to view full workflow</CardDescription>
           </CardHeader>
           <CardContent>
             {incidents.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No incidents reported
+                <Shield className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No incidents reported</p>
+                <p className="text-xs mt-1">Create a new incident to start tracking</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {incidents.map((incident) => (
-                  <div key={incident.id} className="p-4 border rounded-lg">
+                  <div 
+                    key={incident.id} 
+                    className="p-4 border rounded-lg hover:bg-muted/30 transition-colors cursor-pointer group"
+                    onClick={() => openIncidentDetails(incident)}
+                  >
                     <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold text-lg">{incident.title}</h3>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-lg">{incident.title}</h3>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           Created by {incident.profiles?.full_name || 'Unknown'} on{' '}
                           {new Date(incident.created_at).toLocaleString()}
@@ -311,25 +407,21 @@ const IncidentResponse = () => {
                     </div>
                     
                     {incident.description && (
-                      <p className="text-sm mb-3">{incident.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{incident.description}</p>
                     )}
                     
-                    <div className="flex gap-2">
-                      <Select
-                        value={incident.status}
-                        onValueChange={(value) => updateStatus(incident.id, value)}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="open">Open</SelectItem>
-                          <SelectItem value="investigating">Investigating</SelectItem>
-                          <SelectItem value="contained">Contained</SelectItem>
-                          <SelectItem value="resolved">Resolved</SelectItem>
-                          <SelectItem value="closed">Closed</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {incident.resolved_at 
+                          ? `Resolved ${new Date(incident.resolved_at).toLocaleDateString()}`
+                          : 'In Progress'
+                        }
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Activity className="h-3 w-3" />
+                        {timelineEvents.get(incident.id)?.length || 1} events
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -337,6 +429,69 @@ const IncidentResponse = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Incident Details Sheet */}
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+            {selectedIncident && (
+              <>
+                <SheetHeader className="mb-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${getSeverityColor(selectedIncident.severity)}`}>
+                      {selectedIncident.severity.toUpperCase()}
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedIncident.status)}`}>
+                      {selectedIncident.status.toUpperCase()}
+                    </div>
+                  </div>
+                  <SheetTitle className="text-xl">{selectedIncident.title}</SheetTitle>
+                  <SheetDescription>
+                    {selectedIncident.description || 'No description provided'}
+                  </SheetDescription>
+                </SheetHeader>
+
+                <Tabs defaultValue="workflow" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3 mb-6">
+                    <TabsTrigger value="workflow" className="gap-2">
+                      <Zap className="h-4 w-4" />
+                      Workflow
+                    </TabsTrigger>
+                    <TabsTrigger value="actions" className="gap-2">
+                      <Shield className="h-4 w-4" />
+                      Actions
+                    </TabsTrigger>
+                    <TabsTrigger value="timeline" className="gap-2">
+                      <Clock className="h-4 w-4" />
+                      Timeline
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="workflow" className="space-y-6">
+                    <IncidentWorkflow
+                      incident={selectedIncident}
+                      onStatusChange={updateStatus}
+                      onAddNote={handleAddNote}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="actions">
+                    <IncidentActions
+                      incidentId={selectedIncident.id}
+                      severity={selectedIncident.severity}
+                      onActionExecuted={handleActionExecuted}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="timeline">
+                    <IncidentTimeline
+                      events={timelineEvents.get(selectedIncident.id) || []}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+          </SheetContent>
+        </Sheet>
       </main>
     </div>
   );
