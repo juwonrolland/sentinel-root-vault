@@ -15,6 +15,10 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import IncidentWorkflow from "@/components/IncidentWorkflow";
 import IncidentTimeline from "@/components/IncidentTimeline";
 import IncidentActions from "@/components/IncidentActions";
+import { AutomatedIncidentCreator } from "@/components/AutomatedIncidentCreator";
+import { IncidentReportGenerator } from "@/components/IncidentReportGenerator";
+import { EnterpriseNetworkMonitor } from "@/components/EnterpriseNetworkMonitor";
+import { GlobalSecurityOverview } from "@/components/GlobalSecurityOverview";
 
 interface TimelineEvent {
   id: string;

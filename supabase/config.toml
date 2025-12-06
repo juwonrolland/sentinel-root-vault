@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.piracy-detection]
 verify_jwt = false
+
+[functions.auto-classify-threat]
+verify_jwt = false
+
+[functions.generate-incident-report]
+verify_jwt = false
