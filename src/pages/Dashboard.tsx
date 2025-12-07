@@ -58,7 +58,10 @@ import { ThreatCorrelationEngine } from "@/components/ThreatCorrelationEngine";
 import { EnterpriseNetworkMonitor } from "@/components/EnterpriseNetworkMonitor";
 import { GlobalSecurityOverview } from "@/components/GlobalSecurityOverview";
 import { AutomatedIncidentCreator } from "@/components/AutomatedIncidentCreator";
-
+import { ThreatHeatmap } from "@/components/ThreatHeatmap";
+import { AlertEscalation } from "@/components/AlertEscalation";
+import { NetworkDeviceManager } from "@/components/NetworkDeviceManager";
+import { RoleBadge } from "@/components/RoleBasedAccess";
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [threats, setThreats] = useState(0);
