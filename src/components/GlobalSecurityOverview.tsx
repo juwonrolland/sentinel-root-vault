@@ -24,7 +24,11 @@ interface SecurityMetrics {
   responseTime: number;
 }
 
-export const GlobalSecurityOverview = () => {
+interface GlobalSecurityOverviewProps {
+  className?: string;
+}
+
+export const GlobalSecurityOverview = ({ className }: GlobalSecurityOverviewProps) => {
   const [metrics, setMetrics] = useState<SecurityMetrics>({
     threatsBlocked: 0,
     activeMonitoring: 0,
@@ -76,7 +80,7 @@ export const GlobalSecurityOverview = () => {
   };
 
   return (
-    <Card className="cyber-card overflow-hidden">
+    <Card className={`cyber-card overflow-hidden ${className || ''}`}>
       <CardHeader className="pb-2 border-b border-border/50">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-sm">
