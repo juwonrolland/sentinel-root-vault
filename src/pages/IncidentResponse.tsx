@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, ArrowLeft, Plus, ChevronRight, Activity, Clock, Shield, Zap } from "lucide-react";
+import { FileText, ArrowLeft, Plus, ChevronRight, Activity, Clock, Shield, Zap, Link2, Building2, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -19,6 +19,7 @@ import { AutomatedIncidentCreator } from "@/components/AutomatedIncidentCreator"
 import { IncidentReportGenerator } from "@/components/IncidentReportGenerator";
 import { EnterpriseNetworkMonitor } from "@/components/EnterpriseNetworkMonitor";
 import { GlobalSecurityOverview } from "@/components/GlobalSecurityOverview";
+import { ThreatCorrelationEngine } from "@/components/ThreatCorrelationEngine";
 
 interface TimelineEvent {
   id: string;
@@ -314,62 +315,96 @@ const IncidentResponse = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Enterprise Security Overview Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Building2 className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Enterprise Security Operations</h3>
+          </div>
+          <GlobalSecurityOverview className="mb-6" />
+          <EnterpriseNetworkMonitor />
+        </div>
+
+        {/* Automated Incident Creator */}
+        <div className="mb-8">
+          <AutomatedIncidentCreator />
+        </div>
+
+        {/* Threat Correlation Engine */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Link2 className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Threat Correlation Engine</h3>
+          </div>
+          <ThreatCorrelationEngine />
+        </div>
+
+        {/* Incident Report Generator */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Incident Reports</h3>
+          </div>
+          <IncidentReportGenerator />
+        </div>
+
+        {/* Incident Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <Card>
+          <Card className="cyber-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Total Incidents</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{incidents.length}</div>
+              <div className="text-3xl font-bold text-foreground">{incidents.length}</div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="cyber-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Open</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-red-500">
+              <div className="text-3xl font-bold text-destructive">
                 {incidents.filter(i => i.status === 'open').length}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="cyber-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Investigating</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-orange-500">
+              <div className="text-3xl font-bold text-warning">
                 {incidents.filter(i => i.status === 'investigating').length}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="cyber-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Contained</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-yellow-500">
+              <div className="text-3xl font-bold text-accent">
                 {incidents.filter(i => i.status === 'contained').length}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="cyber-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">Resolved</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-500">
+              <div className="text-3xl font-bold text-success">
                 {incidents.filter(i => i.status === 'resolved' || i.status === 'closed').length}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Card>
+        <Card className="cyber-card">
           <CardHeader>
             <CardTitle>Active Incidents</CardTitle>
             <CardDescription>Track and manage security incidents - click to view full workflow</CardDescription>

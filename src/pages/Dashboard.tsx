@@ -27,6 +27,8 @@ import {
   BarChart3,
   Brain,
   Cpu,
+  Link2,
+  Building2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
@@ -52,6 +54,10 @@ import { useOfflineMode } from "@/hooks/useOfflineMode";
 import { SecurityAnalyticsCharts } from "@/components/SecurityAnalyticsCharts";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Search } from "lucide-react";
+import { ThreatCorrelationEngine } from "@/components/ThreatCorrelationEngine";
+import { EnterpriseNetworkMonitor } from "@/components/EnterpriseNetworkMonitor";
+import { GlobalSecurityOverview } from "@/components/GlobalSecurityOverview";
+import { AutomatedIncidentCreator } from "@/components/AutomatedIncidentCreator";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -529,6 +535,35 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Enterprise Monitoring Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Building2 className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Enterprise Security Operations</h3>
+            <span className="text-xs text-muted-foreground font-mono ml-auto">GLOBAL INFRASTRUCTURE</span>
+          </div>
+          
+          {/* Global Security Overview */}
+          <GlobalSecurityOverview className="mb-6" />
+          
+          {/* Enterprise Network Monitor */}
+          <EnterpriseNetworkMonitor />
+        </div>
+
+        {/* Threat Correlation Engine */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Link2 className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Threat Correlation Engine</h3>
+            <span className="text-xs text-muted-foreground font-mono ml-auto">AI-POWERED ANALYSIS</span>
+          </div>
+          
+          <ThreatCorrelationEngine />
+        </div>
+
+        {/* Automated Incident Creator (background) */}
+        <AutomatedIncidentCreator />
 
         {/* Analytics Section */}
         <div className="mb-8">
