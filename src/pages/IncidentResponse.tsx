@@ -20,6 +20,8 @@ import { IncidentReportGenerator } from "@/components/IncidentReportGenerator";
 import { EnterpriseNetworkMonitor } from "@/components/EnterpriseNetworkMonitor";
 import { GlobalSecurityOverview } from "@/components/GlobalSecurityOverview";
 import { ThreatCorrelationEngine } from "@/components/ThreatCorrelationEngine";
+import { RoleBadge, AnalystOnly } from "@/components/RoleBasedAccess";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 
 interface TimelineEvent {
   id: string;
@@ -32,6 +34,7 @@ interface TimelineEvent {
 }
 
 const IncidentResponse = () => {
+  const { isAnalyst, isAdmin } = useRoleAccess();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [incidents, setIncidents] = useState<any[]>([]);
@@ -257,61 +260,65 @@ const IncidentResponse = () => {
             </div>
           </div>
           
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                New Incident
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Incident</DialogTitle>
-                <DialogDescription>
-                  Report and track a new security incident
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    placeholder="Brief description of the incident"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Detailed information about the incident..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="severity">Severity</Label>
-                  <Select value={severity} onValueChange={setSeverity}>
-                    <SelectTrigger id="severity">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={createIncident} className="w-full">
-                  Create Incident
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+          <div className="flex items-center gap-2">
+            <RoleBadge />
+            {(isAnalyst || isAdmin) && (
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Incident
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create New Incident</DialogTitle>
+                    <DialogDescription>
+                      Report and track a new security incident
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        placeholder="Brief description of the incident"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="Detailed information about the incident..."
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        rows={4}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="severity">Severity</Label>
+                      <Select value={severity} onValueChange={setSeverity}>
+                        <SelectTrigger id="severity">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="high">High</SelectItem>
+                          <SelectItem value="critical">Critical</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button onClick={createIncident} className="w-full">
+                      Create Incident
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">

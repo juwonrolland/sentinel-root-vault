@@ -29,6 +29,7 @@ import {
   Cpu,
   Link2,
   Building2,
+  MapPin,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
@@ -60,9 +61,11 @@ import { GlobalSecurityOverview } from "@/components/GlobalSecurityOverview";
 import { AutomatedIncidentCreator } from "@/components/AutomatedIncidentCreator";
 import { ThreatHeatmap } from "@/components/ThreatHeatmap";
 import { AlertEscalation } from "@/components/AlertEscalation";
-import { NetworkDeviceManager } from "@/components/NetworkDeviceManager";
-import { RoleBadge } from "@/components/RoleBasedAccess";
+import { RoleBadge, AnalystOnly } from "@/components/RoleBasedAccess";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
+
 const Dashboard = () => {
+  const { role, isAdmin, isAnalyst } = useRoleAccess();
   const [user, setUser] = useState<User | null>(null);
   const [threats, setThreats] = useState(0);
   const [events, setEvents] = useState(0);
@@ -364,6 +367,7 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <RoleBadge />
               <div className="px-2 sm:px-3 py-1 rounded-full bg-success/10 border border-success/30 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
                 <span className="text-[10px] sm:text-xs font-medium text-success">ALL SYSTEMS OPERATIONAL</span>
@@ -581,6 +585,23 @@ const Dashboard = () => {
           
           {/* Enhanced Analytics Charts */}
           <SecurityAnalyticsCharts />
+          
+          {/* Alert Escalation - Analysts and Admins only */}
+          <AnalystOnly>
+            <div className="mt-6">
+              <AlertEscalation />
+            </div>
+          </AnalystOnly>
+        </div>
+
+        {/* Threat Heatmap */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <MapPin className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Global Threat Heatmap</h3>
+            <span className="text-xs text-muted-foreground font-mono ml-auto">GEOGRAPHIC DISTRIBUTION</span>
+          </div>
+          <ThreatHeatmap />
         </div>
 
         {/* Feature Grid */}
