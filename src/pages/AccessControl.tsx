@@ -3,9 +3,10 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Lock, ArrowLeft, CheckCircle, XCircle } from "lucide-react";
+import { Lock, ArrowLeft, CheckCircle, XCircle, Shield } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
+import { RoleBadge, AdminOnly } from "@/components/RoleBasedAccess";
+import { AdminRoleManager } from "@/components/AdminRoleManager";
 const AccessControl = () => {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<any[]>([]);
@@ -43,23 +44,31 @@ const AccessControl = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link to="/dashboard">
-            <Button variant="ghost" size="icon" className="hover:bg-accent">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="p-2 bg-success/10 rounded-lg">
-            <Lock className="h-6 w-6 md:h-8 md:w-8 text-success" />
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard">
+              <Button variant="ghost" size="icon" className="hover:bg-accent">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="p-2 bg-success/10 rounded-lg">
+              <Lock className="h-6 w-6 md:h-8 md:w-8 text-success" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">Access Control</h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Role-based permissions & comprehensive audit logging</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Access Control</h1>
-            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Role-based permissions & comprehensive audit logging</p>
-          </div>
+          <RoleBadge />
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Admin Role Manager */}
+        <div className="mb-8">
+          <AdminRoleManager />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-3">

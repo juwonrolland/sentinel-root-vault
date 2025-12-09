@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, BellOff, CheckCheck, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { RoleBadge } from "@/components/RoleBasedAccess";
 
 interface Notification {
   id: string;
@@ -136,7 +137,8 @@ export default function Notifications() {
               )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <RoleBadge />
             {unreadCount > 0 && (
               <Button variant="outline" size="sm" onClick={markAllAsRead}>
                 <CheckCheck className="h-4 w-4 md:mr-2" />

@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Download, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-
+import { RoleBadge, AnalystOnly } from "@/components/RoleBasedAccess";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 interface ComplianceReport {
   id: string;
   report_type: string;
@@ -18,6 +19,7 @@ interface ComplianceReport {
 }
 
 export default function ComplianceReports() {
+  const { isAnalyst, isAdmin } = useRoleAccess();
   const navigate = useNavigate();
   const [reports, setReports] = useState<ComplianceReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,6 +111,7 @@ export default function ComplianceReports() {
               <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Generate GDPR, HIPAA, and SOC2 compliance documentation</p>
             </div>
           </div>
+          <RoleBadge />
         </div>
       </header>
       <div className="container mx-auto p-4 md:p-8">

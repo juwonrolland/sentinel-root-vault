@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
+import { RoleBadge, AnalystOnly } from "@/components/RoleBasedAccess";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 const ThreatDetection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -92,19 +93,22 @@ const ThreatDetection = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link to="/dashboard">
-            <Button variant="ghost" size="icon" className="hover:bg-accent">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="p-2 bg-destructive/10 rounded-lg">
-            <AlertTriangle className="h-6 w-6 md:h-8 md:w-8 text-destructive" />
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard">
+              <Button variant="ghost" size="icon" className="hover:bg-accent">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="p-2 bg-destructive/10 rounded-lg">
+              <AlertTriangle className="h-6 w-6 md:h-8 md:w-8 text-destructive" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">Advanced Threat Detection</h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Professional-grade automated threat analysis & log forensics</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Advanced Threat Detection</h1>
-            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Professional-grade automated threat analysis & log forensics</p>
-          </div>
+          <RoleBadge />
         </div>
       </header>
 

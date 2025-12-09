@@ -33,6 +33,8 @@ import {
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
 import logo from "@/assets/logo.png";
+import { RoleBadge } from "@/components/RoleBasedAccess";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 
 interface SecurityEvent {
   id: string;
@@ -133,6 +135,7 @@ const severityConfig = {
 };
 
 const ThreatInvestigation = () => {
+  const { isAnalyst, isAdmin } = useRoleAccess();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
@@ -280,6 +283,7 @@ const ThreatInvestigation = () => {
               <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
               Refresh
             </Button>
+            <RoleBadge />
           </div>
         </div>
       </header>

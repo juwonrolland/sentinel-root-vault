@@ -8,6 +8,7 @@ import { ArrowLeft, Shield, CheckCircle2, AlertTriangle, XCircle, FileText, Lock
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { RoleBadge } from "@/components/RoleBasedAccess";
 
 interface ComplianceCheck {
   id: string;
@@ -162,6 +163,7 @@ const SecurityCompliance = () => {
               <h1 className="text-2xl font-bold">Security & Compliance</h1>
             </div>
           </div>
+          <RoleBadge />
         </div>
       </header>
 
