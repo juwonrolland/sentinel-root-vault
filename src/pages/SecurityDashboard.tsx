@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Shield, ArrowLeft, Activity, AlertCircle, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-
+import { RoleBadge } from "@/components/RoleBasedAccess";
 const SecurityDashboard = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<any[]>([]);
@@ -62,19 +62,22 @@ const SecurityDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link to="/dashboard">
-            <Button variant="ghost" size="icon" className="hover:bg-accent">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Shield className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard">
+              <Button variant="ghost" size="icon" className="hover:bg-accent">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Shield className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">Security Dashboard</h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Real-time monitoring of system health and security events</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Security Dashboard</h1>
-            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Real-time monitoring of system health and security events</p>
-          </div>
+          <RoleBadge />
         </div>
       </header>
 

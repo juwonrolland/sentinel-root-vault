@@ -8,8 +8,11 @@ import { Label } from "@/components/ui/label";
 import { MessageSquare, ArrowLeft, Loader2, AlertCircle, Shield, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { RoleBadge, AnalystOnly } from "@/components/RoleBasedAccess";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 
 const SentimentAnalysis = () => {
+  const { isAnalyst, isAdmin } = useRoleAccess();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [analyses, setAnalyses] = useState<any[]>([]);
@@ -120,19 +123,22 @@ const SentimentAnalysis = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-md">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link to="/dashboard">
-            <Button variant="ghost" size="icon" className="hover:bg-accent">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Shield className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard">
+              <Button variant="ghost" size="icon" className="hover:bg-accent">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Shield className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">Advanced Forensic NLP Security Analysis</h1>
+              <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Professional-grade contextual threat detection & sentiment analysis</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Advanced Forensic NLP Security Analysis</h1>
-            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Professional-grade contextual threat detection & sentiment analysis</p>
-          </div>
+          <RoleBadge />
         </div>
       </header>
 

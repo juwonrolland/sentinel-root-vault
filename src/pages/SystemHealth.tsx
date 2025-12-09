@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Activity, TrendingUp, TrendingDown, AlertTriangle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { RoleBadge } from "@/components/RoleBasedAccess";
 
 interface HealthMetric {
   id: string;
@@ -105,6 +106,7 @@ export default function SystemHealth() {
               <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Real-time system performance monitoring</p>
             </div>
           </div>
+          <RoleBadge />
         </div>
       </header>
       <div className="container mx-auto p-4 md:p-8">
