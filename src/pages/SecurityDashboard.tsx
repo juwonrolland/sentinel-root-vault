@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, ArrowLeft, Activity, AlertCircle, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { RoleBadge } from "@/components/RoleBasedAccess";
+import { NetworkTracer } from "@/components/NetworkTracer";
 const SecurityDashboard = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<any[]>([]);
@@ -124,36 +125,41 @@ const SecurityDashboard = () => {
           </Card>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Security Events</CardTitle>
-            <CardDescription>Real-time monitoring of system security events</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {events.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No security events detected
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {events.map((event) => (
-                  <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      {getSeverityIcon(event.severity)}
-                      <div>
-                        <div className="font-semibold">{event.event_type}</div>
-                        <div className="text-sm text-muted-foreground">{event.description}</div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Security Events</CardTitle>
+              <CardDescription>Real-time monitoring of system security events</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {events.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No security events detected
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {events.map((event) => (
+                    <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        {getSeverityIcon(event.severity)}
+                        <div>
+                          <div className="font-semibold">{event.event_type}</div>
+                          <div className="text-sm text-muted-foreground">{event.description}</div>
+                        </div>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(event.detected_at).toLocaleString()}
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(event.detected_at).toLocaleString()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Network Tracer */}
+          <NetworkTracer />
+        </div>
       </main>
     </div>
   );

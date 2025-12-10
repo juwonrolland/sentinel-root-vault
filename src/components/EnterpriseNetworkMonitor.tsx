@@ -60,6 +60,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
+import { NetworkTracer } from "@/components/NetworkTracer";
 
 interface NetworkDevice {
   id: string;
@@ -623,11 +624,12 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-5 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="devices">Devices ({devices.length})</TabsTrigger>
-            <TabsTrigger value="zones">Network Zones</TabsTrigger>
-            <TabsTrigger value="metrics">Global Metrics</TabsTrigger>
+            <TabsTrigger value="zones">Zones</TabsTrigger>
+            <TabsTrigger value="tracer">Trace & Scan</TabsTrigger>
+            <TabsTrigger value="metrics">Metrics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -912,6 +914,11 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                 ))}
               </div>
             </ScrollArea>
+          </TabsContent>
+
+          {/* Network Tracer Tab */}
+          <TabsContent value="tracer">
+            <NetworkTracer />
           </TabsContent>
 
           <TabsContent value="metrics">
