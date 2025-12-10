@@ -7,6 +7,7 @@ import { Lock, ArrowLeft, CheckCircle, XCircle, Shield } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RoleBadge, AdminOnly } from "@/components/RoleBasedAccess";
 import { AdminRoleManager } from "@/components/AdminRoleManager";
+import { AuditExport } from "@/components/AuditExport";
 const AccessControl = () => {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<any[]>([]);
@@ -67,6 +68,11 @@ const AccessControl = () => {
         {/* Admin Role Manager */}
         <div className="mb-8">
           <AdminRoleManager />
+        </div>
+
+        {/* Audit Export */}
+        <div className="mb-8">
+          <AuditExport />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
