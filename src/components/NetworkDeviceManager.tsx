@@ -18,6 +18,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -339,38 +340,63 @@ export const NetworkDeviceManager = ({ className, onDeviceSelect }: NetworkDevic
                   Add Device
                 </Button>
               </DialogTrigger>
-              <DialogContent className="cyber-card">
-                <DialogHeader>
-                  <DialogTitle>Add Network Device</DialogTitle>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader className="space-y-3">
+                  <DialogTitle className="flex items-center gap-2 text-lg">
+                    <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                      <Network className="h-5 w-5 text-primary" />
+                    </div>
+                    Add Network Device
+                  </DialogTitle>
+                  <DialogDescription className="text-muted-foreground">
+                    Register a new device to monitor. Fields marked with * are required.
+                  </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
+                <div className="space-y-5 py-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Device Name *</Label>
+                      <Label className="text-sm font-medium text-foreground">Device Name *</Label>
                       <Input
                         placeholder="e.g., Main Server"
                         value={newDevice.name || ''}
                         onChange={(e) => setNewDevice({ ...newDevice, name: e.target.value })}
+                        className="bg-secondary/50 border-border focus:border-primary"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Device Type *</Label>
+                      <Label className="text-sm font-medium text-foreground">Device Type *</Label>
                       <Select
                         value={newDevice.type}
                         onValueChange={(v: any) => setNewDevice({ ...newDevice, type: v })}
                       >
-                        <SelectTrigger>
-                          <SelectValue />
+                        <SelectTrigger className="bg-secondary/50 border-border">
+                          <SelectValue placeholder="Select type" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="server">Server</SelectItem>
-                          <SelectItem value="router">Router</SelectItem>
-                          <SelectItem value="switch">Switch</SelectItem>
-                          <SelectItem value="firewall">Firewall</SelectItem>
-                          <SelectItem value="workstation">Workstation</SelectItem>
-                          <SelectItem value="mobile">Mobile Device</SelectItem>
-                          <SelectItem value="iot">IoT Device</SelectItem>
-                          <SelectItem value="cloud">Cloud Instance</SelectItem>
+                        <SelectContent className="bg-card border-border">
+                          <SelectItem value="server">
+                            <span className="flex items-center gap-2"><Server className="h-3.5 w-3.5" /> Server</span>
+                          </SelectItem>
+                          <SelectItem value="router">
+                            <span className="flex items-center gap-2"><Router className="h-3.5 w-3.5" /> Router</span>
+                          </SelectItem>
+                          <SelectItem value="switch">
+                            <span className="flex items-center gap-2"><Network className="h-3.5 w-3.5" /> Switch</span>
+                          </SelectItem>
+                          <SelectItem value="firewall">
+                            <span className="flex items-center gap-2"><Shield className="h-3.5 w-3.5" /> Firewall</span>
+                          </SelectItem>
+                          <SelectItem value="workstation">
+                            <span className="flex items-center gap-2"><Monitor className="h-3.5 w-3.5" /> Workstation</span>
+                          </SelectItem>
+                          <SelectItem value="mobile">
+                            <span className="flex items-center gap-2"><Smartphone className="h-3.5 w-3.5" /> Mobile Device</span>
+                          </SelectItem>
+                          <SelectItem value="iot">
+                            <span className="flex items-center gap-2"><Wifi className="h-3.5 w-3.5" /> IoT Device</span>
+                          </SelectItem>
+                          <SelectItem value="cloud">
+                            <span className="flex items-center gap-2"><Cloud className="h-3.5 w-3.5" /> Cloud Instance</span>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -378,57 +404,63 @@ export const NetworkDeviceManager = ({ className, onDeviceSelect }: NetworkDevic
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>IP Address *</Label>
+                      <Label className="text-sm font-medium text-foreground">IP Address *</Label>
                       <Input
                         placeholder="e.g., 192.168.1.100"
                         value={newDevice.ipAddress || ''}
                         onChange={(e) => setNewDevice({ ...newDevice, ipAddress: e.target.value })}
+                        className="bg-secondary/50 border-border focus:border-primary font-mono"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Port (optional)</Label>
+                      <Label className="text-sm font-medium text-foreground">Port <span className="text-muted-foreground font-normal">(optional)</span></Label>
                       <Input
                         type="number"
                         placeholder="e.g., 22, 443"
                         value={newDevice.port || ''}
                         onChange={(e) => setNewDevice({ ...newDevice, port: parseInt(e.target.value) || undefined })}
+                        className="bg-secondary/50 border-border focus:border-primary font-mono"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Organization</Label>
+                      <Label className="text-sm font-medium text-foreground">Organization</Label>
                       <Input
                         placeholder="e.g., IT Department"
                         value={newDevice.organization || ''}
                         onChange={(e) => setNewDevice({ ...newDevice, organization: e.target.value })}
+                        className="bg-secondary/50 border-border focus:border-primary"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Location</Label>
+                      <Label className="text-sm font-medium text-foreground">Location</Label>
                       <Input
                         placeholder="e.g., Data Center A"
                         value={newDevice.location || ''}
                         onChange={(e) => setNewDevice({ ...newDevice, location: e.target.value })}
+                        className="bg-secondary/50 border-border focus:border-primary"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>MAC Address (optional)</Label>
+                    <Label className="text-sm font-medium text-foreground">MAC Address <span className="text-muted-foreground font-normal">(optional)</span></Label>
                     <Input
                       placeholder="e.g., 00:1A:2B:3C:4D:5E"
                       value={newDevice.macAddress || ''}
                       onChange={(e) => setNewDevice({ ...newDevice, macAddress: e.target.value })}
+                      className="bg-secondary/50 border-border focus:border-primary font-mono"
                     />
                   </div>
 
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setIsAddingDevice(false)}>
+                  <div className="flex justify-end gap-3 pt-2 border-t border-border">
+                    <Button variant="outline" onClick={() => setIsAddingDevice(false)} className="px-6">
                       Cancel
                     </Button>
-                    <Button onClick={addDevice}>
+                    <Button onClick={addDevice} className="px-6">
+                      <Plus className="h-4 w-4 mr-1" />
                       Add Device
                     </Button>
                   </div>

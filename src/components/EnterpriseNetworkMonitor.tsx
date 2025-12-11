@@ -18,6 +18,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -61,6 +62,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { NetworkTracer } from "@/components/NetworkTracer";
+import { NetworkTrafficAnalyzer } from "@/components/NetworkTrafficAnalyzer";
 
 interface NetworkDevice {
   id: string;
@@ -509,38 +511,63 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                       Add Device
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="cyber-card max-w-lg">
-                    <DialogHeader>
-                      <DialogTitle>Add Network Device</DialogTitle>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader className="space-y-3">
+                      <DialogTitle className="flex items-center gap-2 text-lg">
+                        <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                          <Network className="h-5 w-5 text-primary" />
+                        </div>
+                        Add Network Device
+                      </DialogTitle>
+                      <DialogDescription className="text-muted-foreground">
+                        Register a new device to monitor. Fields marked with * are required.
+                      </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="space-y-5 py-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Device Name *</Label>
+                          <Label className="text-sm font-medium text-foreground">Device Name *</Label>
                           <Input
                             placeholder="e.g., Main Server"
                             value={newDevice.name || ''}
                             onChange={(e) => setNewDevice({ ...newDevice, name: e.target.value })}
+                            className="bg-secondary/50 border-border focus:border-primary"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Device Type *</Label>
+                          <Label className="text-sm font-medium text-foreground">Device Type *</Label>
                           <Select
                             value={newDevice.type}
                             onValueChange={(v: any) => setNewDevice({ ...newDevice, type: v })}
                           >
-                            <SelectTrigger>
-                              <SelectValue />
+                            <SelectTrigger className="bg-secondary/50 border-border">
+                              <SelectValue placeholder="Select type" />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="server">Server</SelectItem>
-                              <SelectItem value="router">Router</SelectItem>
-                              <SelectItem value="switch">Switch</SelectItem>
-                              <SelectItem value="firewall">Firewall</SelectItem>
-                              <SelectItem value="workstation">Workstation</SelectItem>
-                              <SelectItem value="mobile">Mobile Device</SelectItem>
-                              <SelectItem value="iot">IoT Device</SelectItem>
-                              <SelectItem value="cloud">Cloud Instance</SelectItem>
+                            <SelectContent className="bg-card border-border">
+                              <SelectItem value="server">
+                                <span className="flex items-center gap-2"><Server className="h-3.5 w-3.5" /> Server</span>
+                              </SelectItem>
+                              <SelectItem value="router">
+                                <span className="flex items-center gap-2"><Router className="h-3.5 w-3.5" /> Router</span>
+                              </SelectItem>
+                              <SelectItem value="switch">
+                                <span className="flex items-center gap-2"><Network className="h-3.5 w-3.5" /> Switch</span>
+                              </SelectItem>
+                              <SelectItem value="firewall">
+                                <span className="flex items-center gap-2"><Shield className="h-3.5 w-3.5" /> Firewall</span>
+                              </SelectItem>
+                              <SelectItem value="workstation">
+                                <span className="flex items-center gap-2"><Monitor className="h-3.5 w-3.5" /> Workstation</span>
+                              </SelectItem>
+                              <SelectItem value="mobile">
+                                <span className="flex items-center gap-2"><Smartphone className="h-3.5 w-3.5" /> Mobile Device</span>
+                              </SelectItem>
+                              <SelectItem value="iot">
+                                <span className="flex items-center gap-2"><Wifi className="h-3.5 w-3.5" /> IoT Device</span>
+                              </SelectItem>
+                              <SelectItem value="cloud">
+                                <span className="flex items-center gap-2"><Cloud className="h-3.5 w-3.5" /> Cloud Instance</span>
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -548,69 +575,88 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>IP Address *</Label>
+                          <Label className="text-sm font-medium text-foreground">IP Address *</Label>
                           <Input
                             placeholder="e.g., 192.168.1.100"
                             value={newDevice.ipAddress || ''}
                             onChange={(e) => setNewDevice({ ...newDevice, ipAddress: e.target.value })}
+                            className="bg-secondary/50 border-border focus:border-primary font-mono"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Port (optional)</Label>
+                          <Label className="text-sm font-medium text-foreground">Port <span className="text-muted-foreground font-normal">(optional)</span></Label>
                           <Input
                             type="number"
                             placeholder="e.g., 22, 443"
                             value={newDevice.port || ''}
                             onChange={(e) => setNewDevice({ ...newDevice, port: parseInt(e.target.value) || undefined })}
+                            className="bg-secondary/50 border-border focus:border-primary font-mono"
                           />
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Organization/Zone</Label>
+                          <Label className="text-sm font-medium text-foreground">Organization/Zone</Label>
                           <Select
-                            value={newDevice.organization || 'corporate'}
+                            value={newDevice.organization || 'Corporate'}
                             onValueChange={(v) => setNewDevice({ ...newDevice, organization: v })}
                           >
-                            <SelectTrigger>
-                              <SelectValue />
+                            <SelectTrigger className="bg-secondary/50 border-border">
+                              <SelectValue placeholder="Select zone" />
                             </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Corporate">Corporate</SelectItem>
-                              <SelectItem value="Government">Government</SelectItem>
-                              <SelectItem value="Financial">Financial</SelectItem>
-                              <SelectItem value="Healthcare">Healthcare</SelectItem>
-                              <SelectItem value="Infrastructure">Infrastructure</SelectItem>
-                              <SelectItem value="Education">Education</SelectItem>
-                              <SelectItem value="Defense">Defense</SelectItem>
+                            <SelectContent className="bg-card border-border">
+                              <SelectItem value="Corporate">
+                                <span className="flex items-center gap-2"><Building2 className="h-3.5 w-3.5" /> Corporate</span>
+                              </SelectItem>
+                              <SelectItem value="Government">
+                                <span className="flex items-center gap-2"><Landmark className="h-3.5 w-3.5" /> Government</span>
+                              </SelectItem>
+                              <SelectItem value="Financial">
+                                <span className="flex items-center gap-2"><Database className="h-3.5 w-3.5" /> Financial</span>
+                              </SelectItem>
+                              <SelectItem value="Healthcare">
+                                <span className="flex items-center gap-2"><Hospital className="h-3.5 w-3.5" /> Healthcare</span>
+                              </SelectItem>
+                              <SelectItem value="Infrastructure">
+                                <span className="flex items-center gap-2"><Factory className="h-3.5 w-3.5" /> Infrastructure</span>
+                              </SelectItem>
+                              <SelectItem value="Education">
+                                <span className="flex items-center gap-2"><GraduationCap className="h-3.5 w-3.5" /> Education</span>
+                              </SelectItem>
+                              <SelectItem value="Defense">
+                                <span className="flex items-center gap-2"><Shield className="h-3.5 w-3.5" /> Defense</span>
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label>Location</Label>
+                          <Label className="text-sm font-medium text-foreground">Location</Label>
                           <Input
                             placeholder="e.g., Data Center A"
                             value={newDevice.location || ''}
                             onChange={(e) => setNewDevice({ ...newDevice, location: e.target.value })}
+                            className="bg-secondary/50 border-border focus:border-primary"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>MAC Address (optional)</Label>
+                        <Label className="text-sm font-medium text-foreground">MAC Address <span className="text-muted-foreground font-normal">(optional)</span></Label>
                         <Input
                           placeholder="e.g., 00:1A:2B:3C:4D:5E"
                           value={newDevice.macAddress || ''}
                           onChange={(e) => setNewDevice({ ...newDevice, macAddress: e.target.value })}
+                          className="bg-secondary/50 border-border focus:border-primary font-mono"
                         />
                       </div>
 
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => setIsAddingDevice(false)}>
+                      <div className="flex justify-end gap-3 pt-2 border-t border-border">
+                        <Button variant="outline" onClick={() => setIsAddingDevice(false)} className="px-6">
                           Cancel
                         </Button>
-                        <Button onClick={addDevice}>
+                        <Button onClick={addDevice} className="px-6">
+                          <Plus className="h-4 w-4 mr-1" />
                           Add Device
                         </Button>
                       </div>
@@ -624,9 +670,10 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid grid-cols-5 w-full">
+          <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="devices">Devices ({devices.length})</TabsTrigger>
+            <TabsTrigger value="traffic">Traffic</TabsTrigger>
             <TabsTrigger value="zones">Zones</TabsTrigger>
             <TabsTrigger value="tracer">Trace & Scan</TabsTrigger>
             <TabsTrigger value="metrics">Metrics</TabsTrigger>
@@ -865,6 +912,10 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                 </div>
               )}
             </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="traffic">
+            <NetworkTrafficAnalyzer />
           </TabsContent>
 
           <TabsContent value="zones">
