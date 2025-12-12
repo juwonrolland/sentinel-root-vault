@@ -64,6 +64,7 @@ import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { NetworkTracer } from "@/components/NetworkTracer";
 import { NetworkTrafficAnalyzer } from "@/components/NetworkTrafficAnalyzer";
 import { NetworkPerformanceBaseline } from "@/components/NetworkPerformanceBaseline";
+import { NetworkAutoDiscovery } from "@/components/NetworkAutoDiscovery";
 
 interface NetworkDevice {
   id: string;
@@ -699,6 +700,7 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
           <TabsList className="grid grid-cols-7 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="devices">Devices ({devices.length})</TabsTrigger>
+            <TabsTrigger value="discovery">Discovery</TabsTrigger>
             <TabsTrigger value="traffic">Traffic</TabsTrigger>
             <TabsTrigger value="baseline">Baseline</TabsTrigger>
             <TabsTrigger value="zones">Zones</TabsTrigger>
@@ -943,6 +945,10 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
 
           <TabsContent value="traffic">
             <NetworkTrafficAnalyzer />
+          </TabsContent>
+
+          <TabsContent value="discovery">
+            <NetworkAutoDiscovery />
           </TabsContent>
 
           <TabsContent value="baseline">
