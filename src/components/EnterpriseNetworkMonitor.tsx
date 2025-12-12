@@ -63,6 +63,7 @@ import { cn } from "@/lib/utils";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { NetworkTracer } from "@/components/NetworkTracer";
 import { NetworkTrafficAnalyzer } from "@/components/NetworkTrafficAnalyzer";
+import { NetworkPerformanceBaseline } from "@/components/NetworkPerformanceBaseline";
 
 interface NetworkDevice {
   id: string;
@@ -632,12 +633,37 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                         </div>
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-foreground">Location</Label>
-                          <Input
-                            placeholder="e.g., Data Center A"
-                            value={newDevice.location || ''}
-                            onChange={(e) => setNewDevice({ ...newDevice, location: e.target.value })}
-                            className="bg-secondary/50 border-border focus:border-primary"
-                          />
+                          <Select
+                            value={newDevice.location || 'datacenter-a'}
+                            onValueChange={(v) => setNewDevice({ ...newDevice, location: v })}
+                          >
+                            <SelectTrigger className="bg-secondary/50 border-border">
+                              <SelectValue placeholder="Select location" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="datacenter-a">
+                                <span className="flex items-center gap-2"><Server className="h-3.5 w-3.5" /> Data Center A</span>
+                              </SelectItem>
+                              <SelectItem value="datacenter-b">
+                                <span className="flex items-center gap-2"><Server className="h-3.5 w-3.5" /> Data Center B</span>
+                              </SelectItem>
+                              <SelectItem value="headquarters">
+                                <span className="flex items-center gap-2"><Building2 className="h-3.5 w-3.5" /> Headquarters</span>
+                              </SelectItem>
+                              <SelectItem value="branch-office">
+                                <span className="flex items-center gap-2"><Network className="h-3.5 w-3.5" /> Branch Office</span>
+                              </SelectItem>
+                              <SelectItem value="remote">
+                                <span className="flex items-center gap-2"><Wifi className="h-3.5 w-3.5" /> Remote</span>
+                              </SelectItem>
+                              <SelectItem value="cloud">
+                                <span className="flex items-center gap-2"><Cloud className="h-3.5 w-3.5" /> Cloud Region</span>
+                              </SelectItem>
+                              <SelectItem value="edge">
+                                <span className="flex items-center gap-2"><Router className="h-3.5 w-3.5" /> Edge Location</span>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 
@@ -670,10 +696,11 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid grid-cols-6 w-full">
+          <TabsList className="grid grid-cols-7 w-full">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="devices">Devices ({devices.length})</TabsTrigger>
             <TabsTrigger value="traffic">Traffic</TabsTrigger>
+            <TabsTrigger value="baseline">Baseline</TabsTrigger>
             <TabsTrigger value="zones">Zones</TabsTrigger>
             <TabsTrigger value="tracer">Trace & Scan</TabsTrigger>
             <TabsTrigger value="metrics">Metrics</TabsTrigger>
@@ -916,6 +943,10 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
 
           <TabsContent value="traffic">
             <NetworkTrafficAnalyzer />
+          </TabsContent>
+
+          <TabsContent value="baseline">
+            <NetworkPerformanceBaseline />
           </TabsContent>
 
           <TabsContent value="zones">

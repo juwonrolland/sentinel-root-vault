@@ -426,22 +426,72 @@ export const NetworkDeviceManager = ({ className, onDeviceSelect }: NetworkDevic
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-foreground">Organization</Label>
-                      <Input
-                        placeholder="e.g., IT Department"
+                      <Label className="text-sm font-medium text-foreground">Organization/Zone</Label>
+                      <Select
                         value={newDevice.organization || ''}
-                        onChange={(e) => setNewDevice({ ...newDevice, organization: e.target.value })}
-                        className="bg-secondary/50 border-border focus:border-primary"
-                      />
+                        onValueChange={(v) => setNewDevice({ ...newDevice, organization: v })}
+                      >
+                        <SelectTrigger className="bg-secondary/50 border-border">
+                          <SelectValue placeholder="Select zone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="corporate">
+                            <span className="flex items-center gap-2"><Globe className="h-3.5 w-3.5 text-primary" /> Corporate</span>
+                          </SelectItem>
+                          <SelectItem value="government">
+                            <span className="flex items-center gap-2"><Shield className="h-3.5 w-3.5 text-warning" /> Government</span>
+                          </SelectItem>
+                          <SelectItem value="financial">
+                            <span className="flex items-center gap-2"><Database className="h-3.5 w-3.5 text-success" /> Financial</span>
+                          </SelectItem>
+                          <SelectItem value="healthcare">
+                            <span className="flex items-center gap-2"><Activity className="h-3.5 w-3.5 text-destructive" /> Healthcare</span>
+                          </SelectItem>
+                          <SelectItem value="infrastructure">
+                            <span className="flex items-center gap-2"><HardDrive className="h-3.5 w-3.5 text-accent" /> Infrastructure</span>
+                          </SelectItem>
+                          <SelectItem value="education">
+                            <span className="flex items-center gap-2"><Monitor className="h-3.5 w-3.5 text-muted-foreground" /> Education</span>
+                          </SelectItem>
+                          <SelectItem value="defense">
+                            <span className="flex items-center gap-2"><Lock className="h-3.5 w-3.5 text-primary" /> Defense</span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-foreground">Location</Label>
-                      <Input
-                        placeholder="e.g., Data Center A"
+                      <Select
                         value={newDevice.location || ''}
-                        onChange={(e) => setNewDevice({ ...newDevice, location: e.target.value })}
-                        className="bg-secondary/50 border-border focus:border-primary"
-                      />
+                        onValueChange={(v) => setNewDevice({ ...newDevice, location: v })}
+                      >
+                        <SelectTrigger className="bg-secondary/50 border-border">
+                          <SelectValue placeholder="Select location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="datacenter-a">
+                            <span className="flex items-center gap-2"><Server className="h-3.5 w-3.5" /> Data Center A</span>
+                          </SelectItem>
+                          <SelectItem value="datacenter-b">
+                            <span className="flex items-center gap-2"><Server className="h-3.5 w-3.5" /> Data Center B</span>
+                          </SelectItem>
+                          <SelectItem value="headquarters">
+                            <span className="flex items-center gap-2"><Globe className="h-3.5 w-3.5" /> Headquarters</span>
+                          </SelectItem>
+                          <SelectItem value="branch-office">
+                            <span className="flex items-center gap-2"><Network className="h-3.5 w-3.5" /> Branch Office</span>
+                          </SelectItem>
+                          <SelectItem value="remote">
+                            <span className="flex items-center gap-2"><Wifi className="h-3.5 w-3.5" /> Remote</span>
+                          </SelectItem>
+                          <SelectItem value="cloud">
+                            <span className="flex items-center gap-2"><Cloud className="h-3.5 w-3.5" /> Cloud Region</span>
+                          </SelectItem>
+                          <SelectItem value="edge">
+                            <span className="flex items-center gap-2"><Router className="h-3.5 w-3.5" /> Edge Location</span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
