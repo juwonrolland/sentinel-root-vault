@@ -21,11 +21,13 @@ import {
   RefreshCw,
   FileJson,
   FileSpreadsheet,
-  Lock
+  Lock,
+  FileType
 } from "lucide-react";
 import { format } from "date-fns";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle } from "docx";
 
-type ExportFormat = 'json' | 'csv';
+type ExportFormat = 'json' | 'csv' | 'docx';
 type AuditCategory = 'security_audit_log' | 'access_logs' | 'security_events' | 'incidents' | 'threat_detections';
 
 interface ExportConfig {
@@ -111,9 +113,8 @@ export const AuditExport = () => {
         return;
       }
 
-      let content: string;
       let filename: string;
-      let mimeType: string;
+      let blob: Blob;
 
       if (config.format === 'json') {
         const exportData = config.includeMetadata ? {
@@ -127,11 +128,10 @@ export const AuditExport = () => {
           data,
         } : data;
         
-        content = JSON.stringify(exportData, null, 2);
+        const content = JSON.stringify(exportData, null, 2);
         filename = `audit_${config.category}_${config.startDate}_${config.endDate}.json`;
-        mimeType = 'application/json';
-      } else {
-        // CSV export
+        blob = new Blob([content], { type: 'application/json' });
+      } else if (config.format === 'csv') {
         const headers = Object.keys(data[0]);
         const csvRows = [
           headers.join(','),
@@ -147,13 +147,64 @@ export const AuditExport = () => {
             }).join(',')
           )
         ];
-        content = csvRows.join('\n');
+        const content = csvRows.join('\n');
         filename = `audit_${config.category}_${config.startDate}_${config.endDate}.csv`;
-        mimeType = 'text/csv';
+        blob = new Blob([content], { type: 'text/csv' });
+      } else {
+        // DOCX export
+        const headers = Object.keys(data[0]);
+        const doc = new Document({
+          sections: [{
+            properties: {},
+            children: [
+              new Paragraph({
+                text: "Glorious Global Security Intelligence Platform",
+                heading: HeadingLevel.TITLE,
+              }),
+              new Paragraph({
+                text: `${CATEGORY_CONFIG[config.category].label} Report`,
+                heading: HeadingLevel.HEADING_1,
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({ text: `Date Range: ${config.startDate} to ${config.endDate}`, italics: true }),
+                ],
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({ text: `Total Records: ${data.length}`, bold: true }),
+                ],
+              }),
+              new Paragraph({ text: "" }),
+              new Table({
+                width: { size: 100, type: WidthType.PERCENTAGE },
+                rows: [
+                  new TableRow({
+                    children: headers.slice(0, 5).map(h => new TableCell({
+                      children: [new Paragraph({ children: [new TextRun({ text: h, bold: true })] })],
+                      borders: { top: { style: BorderStyle.SINGLE }, bottom: { style: BorderStyle.SINGLE }, left: { style: BorderStyle.SINGLE }, right: { style: BorderStyle.SINGLE } },
+                    })),
+                  }),
+                  ...data.slice(0, 50).map(row => new TableRow({
+                    children: headers.slice(0, 5).map(h => new TableCell({
+                      children: [new Paragraph({ text: String(row[h] ?? '').slice(0, 50) })],
+                      borders: { top: { style: BorderStyle.SINGLE }, bottom: { style: BorderStyle.SINGLE }, left: { style: BorderStyle.SINGLE }, right: { style: BorderStyle.SINGLE } },
+                    })),
+                  })),
+                ],
+              }),
+              new Paragraph({ text: "" }),
+              new Paragraph({ text: `Generated on ${new Date().toLocaleString()}` }),
+            ],
+          }],
+        });
+        
+        const buffer = await Packer.toBlob(doc);
+        filename = `audit_${config.category}_${config.startDate}_${config.endDate}.docx`;
+        blob = buffer;
       }
 
       // Create and download file
-      const blob = new Blob([content], { type: mimeType });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -269,7 +320,7 @@ export const AuditExport = () => {
             {/* Export Format */}
             <div className="space-y-2">
               <Label>Export Format</Label>
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <Button
                   variant={config.format === 'json' ? 'default' : 'outline'}
                   onClick={() => setConfig(prev => ({ ...prev, format: 'json' }))}
@@ -285,6 +336,14 @@ export const AuditExport = () => {
                 >
                   <FileSpreadsheet className="h-4 w-4 mr-2" />
                   CSV
+                </Button>
+                <Button
+                  variant={config.format === 'docx' ? 'default' : 'outline'}
+                  onClick={() => setConfig(prev => ({ ...prev, format: 'docx' }))}
+                  className="flex-1"
+                >
+                  <FileType className="h-4 w-4 mr-2" />
+                  Word
                 </Button>
               </div>
             </div>
