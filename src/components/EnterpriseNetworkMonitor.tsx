@@ -65,6 +65,9 @@ import { NetworkTracer } from "@/components/NetworkTracer";
 import { NetworkTrafficAnalyzer } from "@/components/NetworkTrafficAnalyzer";
 import { NetworkPerformanceBaseline } from "@/components/NetworkPerformanceBaseline";
 import { NetworkAutoDiscovery } from "@/components/NetworkAutoDiscovery";
+import { BandwidthQoSManager } from "@/components/BandwidthQoSManager";
+import { DeviceGroupManager } from "@/components/DeviceGroupManager";
+import { NetworkTopology } from "@/components/NetworkTopology";
 
 interface NetworkDevice {
   id: string;
@@ -697,15 +700,18 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid grid-cols-7 w-full">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="devices">Devices ({devices.length})</TabsTrigger>
-            <TabsTrigger value="discovery">Discovery</TabsTrigger>
-            <TabsTrigger value="traffic">Traffic</TabsTrigger>
-            <TabsTrigger value="baseline">Baseline</TabsTrigger>
-            <TabsTrigger value="zones">Zones</TabsTrigger>
-            <TabsTrigger value="tracer">Trace & Scan</TabsTrigger>
-            <TabsTrigger value="metrics">Metrics</TabsTrigger>
+          <TabsList className="flex flex-wrap w-full gap-1">
+            <TabsTrigger value="overview" className="flex-1 min-w-[80px]">Overview</TabsTrigger>
+            <TabsTrigger value="topology" className="flex-1 min-w-[80px]">Topology</TabsTrigger>
+            <TabsTrigger value="devices" className="flex-1 min-w-[80px]">Devices ({devices.length})</TabsTrigger>
+            <TabsTrigger value="groups" className="flex-1 min-w-[80px]">Groups</TabsTrigger>
+            <TabsTrigger value="qos" className="flex-1 min-w-[80px]">QoS</TabsTrigger>
+            <TabsTrigger value="discovery" className="flex-1 min-w-[80px]">Discovery</TabsTrigger>
+            <TabsTrigger value="traffic" className="flex-1 min-w-[80px]">Traffic</TabsTrigger>
+            <TabsTrigger value="baseline" className="flex-1 min-w-[80px]">Baseline</TabsTrigger>
+            <TabsTrigger value="zones" className="flex-1 min-w-[80px]">Zones</TabsTrigger>
+            <TabsTrigger value="tracer" className="flex-1 min-w-[80px]">Trace</TabsTrigger>
+            <TabsTrigger value="metrics" className="flex-1 min-w-[80px]">Metrics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -810,6 +816,10 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
               </div>
               <Progress value={globalMetrics.uptime} className="h-2" />
             </div>
+          </TabsContent>
+
+          <TabsContent value="topology">
+            <NetworkTopology devices={devices} />
           </TabsContent>
 
           <TabsContent value="devices">
@@ -941,6 +951,14 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                 </div>
               )}
             </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="groups">
+            <DeviceGroupManager devices={devices} />
+          </TabsContent>
+
+          <TabsContent value="qos">
+            <BandwidthQoSManager devices={devices.map(d => ({ id: d.id, name: d.name, type: d.type, ipAddress: d.ipAddress }))} />
           </TabsContent>
 
           <TabsContent value="traffic">
