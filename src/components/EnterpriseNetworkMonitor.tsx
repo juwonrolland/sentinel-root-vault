@@ -57,6 +57,9 @@ import {
   Cpu,
   HardDrive,
   Signal,
+  Layers,
+  Search,
+  HeartPulse,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -68,6 +71,11 @@ import { NetworkAutoDiscovery } from "@/components/NetworkAutoDiscovery";
 import { BandwidthQoSManager } from "@/components/BandwidthQoSManager";
 import { DeviceGroupManager } from "@/components/DeviceGroupManager";
 import { NetworkTopology } from "@/components/NetworkTopology";
+import { AutomatedThreatResponse } from "@/components/AutomatedThreatResponse";
+import { NetworkHealthDashboard } from "@/components/NetworkHealthDashboard";
+import { SNMPMonitoring } from "@/components/SNMPMonitoring";
+import { MultiPlatformSecurityHub } from "@/components/MultiPlatformSecurityHub";
+import { LeakDetectionSystem } from "@/components/LeakDetectionSystem";
 
 interface NetworkDevice {
   id: string;
@@ -477,25 +485,26 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
 
   return (
     <Card className={cn("cyber-card", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary animate-pulse" />
-            Enterprise Network Monitor
-            <Badge variant="outline" className="ml-2 bg-success/10 text-success border-success/30">
-              <Activity className="h-3 w-3 mr-1" />
+      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
+            <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-primary animate-pulse flex-shrink-0" />
+            <span className="hidden sm:inline">Enterprise Network Monitor</span>
+            <span className="sm:hidden">Network Monitor</span>
+            <Badge variant="outline" className="ml-1 sm:ml-2 bg-success/10 text-success border-success/30 text-[10px] sm:text-xs">
+              <Activity className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
               {monitoringActive ? 'LIVE' : 'PAUSED'}
             </Badge>
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
             <Button
               size="sm"
               variant="outline"
               onClick={() => setMonitoringActive(!monitoringActive)}
-              className="h-7"
+              className="h-6 sm:h-7 text-[10px] sm:text-xs px-2 sm:px-3"
             >
-              {monitoringActive ? <Pause className="h-3 w-3 mr-1" /> : <Play className="h-3 w-3 mr-1" />}
-              {monitoringActive ? 'Pause' : 'Resume'}
+              {monitoringActive ? <Pause className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" /> : <Play className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />}
+              <span className="hidden xs:inline">{monitoringActive ? 'Pause' : 'Resume'}</span>
             </Button>
             {(isAnalyst || isAdmin) && (
               <>
@@ -504,19 +513,19 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                   variant="outline"
                   onClick={scanNetwork}
                   disabled={scanning}
-                  className="h-7"
+                  className="h-6 sm:h-7 text-[10px] sm:text-xs px-2 sm:px-3"
                 >
-                  <RefreshCw className={cn("h-3 w-3 mr-1", scanning && "animate-spin")} />
-                  {scanning ? 'Scanning...' : 'Scan Network'}
+                  <RefreshCw className={cn("h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1", scanning && "animate-spin")} />
+                  <span className="hidden xs:inline">{scanning ? 'Scanning...' : 'Scan'}</span>
                 </Button>
                 <Dialog open={isAddingDevice} onOpenChange={setIsAddingDevice}>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="h-7">
-                      <Plus className="h-3 w-3 mr-1" />
-                      Add Device
+                    <Button size="sm" className="h-6 sm:h-7 text-[10px] sm:text-xs px-2 sm:px-3">
+                      <Plus className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+                      <span className="hidden xs:inline">Add</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px]">
+                  <DialogContent className="max-w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader className="space-y-3">
                       <DialogTitle className="flex items-center gap-2 text-lg">
                         <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
@@ -698,54 +707,69 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="flex flex-wrap w-full gap-1">
-            <TabsTrigger value="overview" className="flex-1 min-w-[80px]">Overview</TabsTrigger>
-            <TabsTrigger value="topology" className="flex-1 min-w-[80px]">Topology</TabsTrigger>
-            <TabsTrigger value="devices" className="flex-1 min-w-[80px]">Devices ({devices.length})</TabsTrigger>
-            <TabsTrigger value="groups" className="flex-1 min-w-[80px]">Groups</TabsTrigger>
-            <TabsTrigger value="qos" className="flex-1 min-w-[80px]">QoS</TabsTrigger>
-            <TabsTrigger value="discovery" className="flex-1 min-w-[80px]">Discovery</TabsTrigger>
-            <TabsTrigger value="traffic" className="flex-1 min-w-[80px]">Traffic</TabsTrigger>
-            <TabsTrigger value="baseline" className="flex-1 min-w-[80px]">Baseline</TabsTrigger>
-            <TabsTrigger value="zones" className="flex-1 min-w-[80px]">Zones</TabsTrigger>
-            <TabsTrigger value="tracer" className="flex-1 min-w-[80px]">Trace</TabsTrigger>
-            <TabsTrigger value="metrics" className="flex-1 min-w-[80px]">Metrics</TabsTrigger>
-          </TabsList>
+      <CardContent className="px-2 sm:px-4 lg:px-6">
+        <Tabs defaultValue="overview" className="space-y-3 sm:space-y-4">
+          <ScrollArea className="w-full pb-2">
+            <TabsList className="inline-flex w-max gap-0.5 sm:gap-1 p-1 h-auto">
+              <TabsTrigger value="overview" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Overview</TabsTrigger>
+              <TabsTrigger value="topology" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Topology</TabsTrigger>
+              <TabsTrigger value="devices" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Devices</TabsTrigger>
+              <TabsTrigger value="groups" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Groups</TabsTrigger>
+              <TabsTrigger value="qos" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">QoS</TabsTrigger>
+              <TabsTrigger value="discovery" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Discovery</TabsTrigger>
+              <TabsTrigger value="traffic" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Traffic</TabsTrigger>
+              <TabsTrigger value="baseline" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Baseline</TabsTrigger>
+              <TabsTrigger value="zones" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Zones</TabsTrigger>
+              <TabsTrigger value="tracer" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Trace</TabsTrigger>
+              <TabsTrigger value="health" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
+                <HeartPulse className="h-3 w-3 mr-1 hidden sm:inline" />Health
+              </TabsTrigger>
+              <TabsTrigger value="threat-response" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
+                <Zap className="h-3 w-3 mr-1 hidden sm:inline" />Response
+              </TabsTrigger>
+              <TabsTrigger value="snmp" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">SNMP</TabsTrigger>
+              <TabsTrigger value="platforms" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
+                <Layers className="h-3 w-3 mr-1 hidden sm:inline" />Platforms
+              </TabsTrigger>
+              <TabsTrigger value="leak-detection" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
+                <Search className="h-3 w-3 mr-1 hidden sm:inline" />Leaks
+              </TabsTrigger>
+              <TabsTrigger value="metrics" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Metrics</TabsTrigger>
+            </TabsList>
+          </ScrollArea>
 
-          <TabsContent value="overview" className="space-y-4">
+          <TabsContent value="overview" className="space-y-3 sm:space-y-4">
             {/* Global Stats Bar */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              <div className="p-3 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30">
-                <Server className="h-4 w-4 text-primary mb-1" />
-                <p className="text-xl font-bold text-foreground">{globalMetrics.totalNodes.toLocaleString()}</p>
-                <p className="text-[10px] text-muted-foreground">Total Nodes</p>
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-3">
+              <div className="p-2 sm:p-3 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30">
+                <Server className="h-3 w-3 sm:h-4 sm:w-4 text-primary mb-0.5 sm:mb-1" />
+                <p className="text-sm sm:text-xl font-bold text-foreground">{globalMetrics.totalNodes.toLocaleString()}</p>
+                <p className="text-[8px] sm:text-[10px] text-muted-foreground">Total Nodes</p>
               </div>
-              <div className="p-3 rounded-lg bg-gradient-to-br from-destructive/20 to-destructive/5 border border-destructive/30">
-                <AlertTriangle className="h-4 w-4 text-destructive mb-1" />
-                <p className="text-xl font-bold text-foreground">{globalMetrics.activeThreats}</p>
-                <p className="text-[10px] text-muted-foreground">Active Threats</p>
+              <div className="p-2 sm:p-3 rounded-lg bg-gradient-to-br from-destructive/20 to-destructive/5 border border-destructive/30">
+                <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-destructive mb-0.5 sm:mb-1" />
+                <p className="text-sm sm:text-xl font-bold text-foreground">{globalMetrics.activeThreats}</p>
+                <p className="text-[8px] sm:text-[10px] text-muted-foreground">Threats</p>
               </div>
-              <div className="p-3 rounded-lg bg-gradient-to-br from-success/20 to-success/5 border border-success/30">
-                <Shield className="h-4 w-4 text-success mb-1" />
-                <p className="text-xl font-bold text-foreground">{globalMetrics.blockedAttacks.toLocaleString()}</p>
-                <p className="text-[10px] text-muted-foreground">Attacks Blocked</p>
+              <div className="p-2 sm:p-3 rounded-lg bg-gradient-to-br from-success/20 to-success/5 border border-success/30">
+                <Shield className="h-3 w-3 sm:h-4 sm:w-4 text-success mb-0.5 sm:mb-1" />
+                <p className="text-sm sm:text-xl font-bold text-foreground">{globalMetrics.blockedAttacks.toLocaleString()}</p>
+                <p className="text-[8px] sm:text-[10px] text-muted-foreground">Blocked</p>
               </div>
-              <div className="p-3 rounded-lg bg-gradient-to-br from-info/20 to-info/5 border border-info/30">
-                <Zap className="h-4 w-4 text-info mb-1" />
-                <p className="text-xl font-bold text-foreground">{(globalMetrics.packetsPerSecond / 1000).toFixed(0)}K</p>
-                <p className="text-[10px] text-muted-foreground">Packets/sec</p>
+              <div className="p-2 sm:p-3 rounded-lg bg-gradient-to-br from-info/20 to-info/5 border border-info/30">
+                <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-info mb-0.5 sm:mb-1" />
+                <p className="text-sm sm:text-xl font-bold text-foreground">{(globalMetrics.packetsPerSecond / 1000).toFixed(0)}K</p>
+                <p className="text-[8px] sm:text-[10px] text-muted-foreground">Pkt/sec</p>
               </div>
-              <div className="p-3 rounded-lg bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/30">
-                <Signal className="h-4 w-4 text-accent mb-1" />
-                <p className="text-xl font-bold text-foreground">{globalMetrics.activeConnections.toLocaleString()}</p>
-                <p className="text-[10px] text-muted-foreground">Connections</p>
+              <div className="p-2 sm:p-3 rounded-lg bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/30 hidden sm:block">
+                <Signal className="h-3 w-3 sm:h-4 sm:w-4 text-accent mb-0.5 sm:mb-1" />
+                <p className="text-sm sm:text-xl font-bold text-foreground">{globalMetrics.activeConnections.toLocaleString()}</p>
+                <p className="text-[8px] sm:text-[10px] text-muted-foreground">Connections</p>
               </div>
-              <div className="p-3 rounded-lg bg-gradient-to-br from-success/20 to-success/5 border border-success/30">
-                <Lock className="h-4 w-4 text-success mb-1" />
-                <p className="text-xl font-bold text-foreground">{globalMetrics.encryptedTraffic}%</p>
-                <p className="text-[10px] text-muted-foreground">Encrypted</p>
+              <div className="p-2 sm:p-3 rounded-lg bg-gradient-to-br from-success/20 to-success/5 border border-success/30 hidden sm:block">
+                <Lock className="h-3 w-3 sm:h-4 sm:w-4 text-success mb-0.5 sm:mb-1" />
+                <p className="text-sm sm:text-xl font-bold text-foreground">{globalMetrics.encryptedTraffic}%</p>
+                <p className="text-[8px] sm:text-[10px] text-muted-foreground">Encrypted</p>
               </div>
             </div>
 
@@ -1098,6 +1122,31 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                 </div>
               </div>
             </div>
+          </TabsContent>
+
+          {/* Network Health Dashboard Tab */}
+          <TabsContent value="health" className="space-y-4">
+            <NetworkHealthDashboard />
+          </TabsContent>
+
+          {/* Automated Threat Response Tab */}
+          <TabsContent value="threat-response" className="space-y-4">
+            <AutomatedThreatResponse />
+          </TabsContent>
+
+          {/* SNMP Monitoring Tab */}
+          <TabsContent value="snmp" className="space-y-4">
+            <SNMPMonitoring />
+          </TabsContent>
+
+          {/* Multi-Platform Security Hub Tab */}
+          <TabsContent value="platforms" className="space-y-4">
+            <MultiPlatformSecurityHub />
+          </TabsContent>
+
+          {/* Leak Detection System Tab */}
+          <TabsContent value="leak-detection" className="space-y-4">
+            <LeakDetectionSystem />
           </TabsContent>
         </Tabs>
       </CardContent>
