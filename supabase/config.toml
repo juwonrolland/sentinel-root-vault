@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.generate-incident-report]
 verify_jwt = false
+
+[functions.threat-intelligence]
+verify_jwt = false
