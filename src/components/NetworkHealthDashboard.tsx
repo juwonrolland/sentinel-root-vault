@@ -170,65 +170,67 @@ export const NetworkHealthDashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Overall Health Score */}
       <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
+        <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div>
-              <h2 className="text-2xl font-bold">Network Health Overview</h2>
-              <p className="text-muted-foreground">Real-time infrastructure monitoring</p>
+              <h2 className="text-lg sm:text-2xl font-bold">Network Health Overview</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">Real-time infrastructure monitoring</p>
             </div>
-            <div className="text-right">
-              <div className="text-5xl font-bold text-primary">{overallHealth}%</div>
-              <div className="text-sm text-muted-foreground flex items-center justify-end gap-1">
-                <CheckCircle2 className="h-4 w-4 text-green-400" />
+            <div className="text-left sm:text-right">
+              <div className="text-3xl sm:text-5xl font-bold text-primary">{overallHealth}%</div>
+              <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-400" />
                 System Healthy
               </div>
             </div>
           </div>
-          <Progress value={overallHealth} className="h-3 mt-4" />
-          <div className="grid grid-cols-4 gap-4 mt-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">{nodes.filter(n => n.status === 'online').length}</div>
-              <div className="text-xs text-muted-foreground">Online Nodes</div>
+          <Progress value={overallHealth} className="h-2 sm:h-3 mt-3 sm:mt-4" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mt-3 sm:mt-4">
+            <div className="text-center p-2 rounded-lg bg-green-500/10">
+              <div className="text-lg sm:text-2xl font-bold text-green-400">{nodes.filter(n => n.status === 'online').length}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Online</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-400">{nodes.filter(n => n.status === 'degraded').length}</div>
-              <div className="text-xs text-muted-foreground">Degraded</div>
+            <div className="text-center p-2 rounded-lg bg-yellow-500/10">
+              <div className="text-lg sm:text-2xl font-bold text-yellow-400">{nodes.filter(n => n.status === 'degraded').length}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Degraded</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-400">{nodes.filter(n => n.status === 'offline').length}</div>
-              <div className="text-xs text-muted-foreground">Offline</div>
+            <div className="text-center p-2 rounded-lg bg-red-500/10">
+              <div className="text-lg sm:text-2xl font-bold text-red-400">{nodes.filter(n => n.status === 'offline').length}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Offline</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">{alerts.filter(a => a.severity === 'critical').length}</div>
-              <div className="text-xs text-muted-foreground">Critical Alerts</div>
+            <div className="text-center p-2 rounded-lg bg-primary/10">
+              <div className="text-lg sm:text-2xl font-bold text-primary">{alerts.filter(a => a.severity === 'critical').length}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Critical</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {metrics.map((metric, idx) => (
           <Card key={idx} className={`border ${getStatusBg(metric.status)}`}>
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className={getStatusColor(metric.status)}>
+            <CardContent className="pt-3 sm:pt-4 px-2 sm:px-4">
+              <div className="flex items-center justify-between mb-1 sm:mb-2">
+                <div className={`${getStatusColor(metric.status)} [&>svg]:h-4 [&>svg]:w-4 sm:[&>svg]:h-5 sm:[&>svg]:w-5`}>
                   {metric.icon}
                 </div>
-                {getTrendIcon(metric.trend)}
+                <div className="[&>svg]:h-3 [&>svg]:w-3 sm:[&>svg]:h-4 sm:[&>svg]:w-4">
+                  {getTrendIcon(metric.trend)}
+                </div>
               </div>
-              <div className="text-2xl font-bold">
+              <div className="text-lg sm:text-2xl font-bold">
                 {typeof metric.value === 'number' ? metric.value.toFixed(metric.unit === '%' ? 1 : 0) : metric.value}
-                <span className="text-sm font-normal text-muted-foreground ml-1">{metric.unit}</span>
+                <span className="text-[10px] sm:text-sm font-normal text-muted-foreground ml-0.5 sm:ml-1">{metric.unit}</span>
               </div>
-              <div className="text-sm text-muted-foreground">{metric.name}</div>
-              <div className="mt-2">
+              <div className="text-[10px] sm:text-sm text-muted-foreground truncate">{metric.name}</div>
+              <div className="mt-1 sm:mt-2">
                 <Progress 
                   value={metric.name === 'Security Score' ? metric.value : (metric.value / metric.threshold.critical) * 100} 
-                  className="h-1"
+                  className="h-0.5 sm:h-1"
                 />
               </div>
             </CardContent>
@@ -236,7 +238,7 @@ export const NetworkHealthDashboard: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Network Nodes */}
         <Card className="bg-card/50 backdrop-blur border-primary/20">
           <CardHeader>

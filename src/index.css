@@ -643,6 +643,32 @@
 }
 
 /* Mobile Responsive Enhancements */
+
+/* Extra small devices */
+@media (max-width: 475px) {
+  .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  /* Make buttons touch-friendly */
+  button, .btn {
+    min-height: 40px;
+  }
+  
+  /* Smaller text for compact displays */
+  .cyber-card {
+    padding: 0.5rem;
+  }
+  
+  /* Hide complex decorations */
+  .hud-corner::before,
+  .hud-corner::after,
+  .pulse-ring::before {
+    display: none;
+  }
+}
+
 @media (max-width: 640px) {
   /* Improve touch targets for main interactive elements */
   .btn-touch,
@@ -684,6 +710,36 @@
   .shadow-glow {
     box-shadow: 0 0 15px hsl(185 100% 50% / 0.3);
   }
+  
+  /* Better card styling on mobile */
+  .soc-panel,
+  .cyber-card {
+    border-radius: 0.5rem;
+  }
+}
+
+/* Tablet responsive adjustments */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .container {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  
+  .cyber-grid {
+    background-size: 35px 35px;
+  }
+}
+
+/* Landscape mode adjustments for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  header {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .container {
+    padding-top: 0.5rem;
+  }
 }
 
 /* Prevent text selection on interactive elements */
@@ -703,6 +759,14 @@
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+  
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
 }
 
 /* Smooth scrolling */
@@ -714,4 +778,53 @@ html {
 /* Better tap highlight */
 * {
   -webkit-tap-highlight-color: hsl(185 100% 50% / 0.1);
+}
+
+/* Responsive text utilities */
+.text-responsive {
+  font-size: clamp(0.75rem, 2vw, 1rem);
+}
+
+.text-responsive-lg {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+}
+
+.text-responsive-xl {
+  font-size: clamp(1.25rem, 4vw, 2rem);
+}
+
+/* Responsive spacing utilities */
+.gap-responsive {
+  gap: clamp(0.5rem, 2vw, 1rem);
+}
+
+.p-responsive {
+  padding: clamp(0.5rem, 2vw, 1rem);
+}
+
+/* Hide on specific breakpoints */
+.hide-xs {
+  @media (max-width: 475px) {
+    display: none !important;
+  }
+}
+
+.hide-sm {
+  @media (max-width: 640px) {
+    display: none !important;
+  }
+}
+
+.show-xs-only {
+  display: none !important;
+  @media (max-width: 475px) {
+    display: block !important;
+  }
+}
+
+.show-sm-only {
+  display: none !important;
+  @media (max-width: 640px) {
+    display: block !important;
+  }
 }
