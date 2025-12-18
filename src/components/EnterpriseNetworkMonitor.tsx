@@ -60,6 +60,8 @@ import {
   Layers,
   Search,
   HeartPulse,
+  Radio,
+  FileText,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -76,6 +78,8 @@ import { NetworkHealthDashboard } from "@/components/NetworkHealthDashboard";
 import { SNMPMonitoring } from "@/components/SNMPMonitoring";
 import { MultiPlatformSecurityHub } from "@/components/MultiPlatformSecurityHub";
 import { LeakDetectionSystem } from "@/components/LeakDetectionSystem";
+import { RealTimeThreatIntelligence } from "@/components/RealTimeThreatIntelligence";
+import { SecurityReportExporter } from "@/components/SecurityReportExporter";
 
 interface NetworkDevice {
   id: string;
@@ -734,6 +738,12 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
               <TabsTrigger value="leak-detection" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
                 <Search className="h-3 w-3 mr-1 hidden sm:inline" />Leaks
               </TabsTrigger>
+              <TabsTrigger value="threat-intel" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
+                <Radio className="h-3 w-3 mr-1 hidden sm:inline" />Intel
+              </TabsTrigger>
+              <TabsTrigger value="reports" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
+                <FileText className="h-3 w-3 mr-1 hidden sm:inline" />Reports
+              </TabsTrigger>
               <TabsTrigger value="metrics" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Metrics</TabsTrigger>
             </TabsList>
           </ScrollArea>
@@ -1147,6 +1157,16 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
           {/* Leak Detection System Tab */}
           <TabsContent value="leak-detection" className="space-y-4">
             <LeakDetectionSystem />
+          </TabsContent>
+
+          {/* Real-Time Threat Intelligence Tab */}
+          <TabsContent value="threat-intel" className="space-y-4">
+            <RealTimeThreatIntelligence />
+          </TabsContent>
+
+          {/* Security Reports Tab */}
+          <TabsContent value="reports" className="space-y-4">
+            <SecurityReportExporter />
           </TabsContent>
         </Tabs>
       </CardContent>

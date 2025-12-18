@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import SecurityCompliance from "./pages/SecurityCompliance";
 import Install from "./pages/Install";
 import ThreatInvestigation from "./pages/ThreatInvestigation";
+import SecuritySettings from "./pages/SecuritySettings";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/security-compliance" element={<SecurityCompliance />} />
           <Route path="/install" element={<Install />} />
           <Route path="/threat-investigation" element={<ThreatInvestigation />} />
+          <Route path="/security-settings" element={<SecuritySettings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
