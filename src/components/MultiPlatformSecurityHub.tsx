@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SectorNetworkConfig } from '@/components/SectorNetworkConfig';
 import { 
   Shield, 
   Globe, 
@@ -24,7 +25,8 @@ import {
   Zap,
   Database,
   Network,
-  Radio
+  Radio,
+  Settings,
 } from 'lucide-react';
 
 interface SecurityPlatform {
@@ -138,6 +140,7 @@ const platforms: SecurityPlatform[] = [
 export const MultiPlatformSecurityHub: React.FC = () => {
   const [selectedPlatform, setSelectedPlatform] = useState<SecurityPlatform | null>(null);
   const [activePlatforms, setActivePlatforms] = useState<string[]>(platforms.map(p => p.id));
+  const [showNetworkConfig, setShowNetworkConfig] = useState(false);
 
   const getThreatLevelColor = (level: string) => {
     switch (level) {
@@ -168,80 +171,80 @@ export const MultiPlatformSecurityHub: React.FC = () => {
   }), { monitored: 0, threats: 0, resolved: 0 });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Global Overview Header */}
       <Card className="bg-gradient-to-r from-primary/20 via-primary/10 to-transparent border-primary/30">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-6">
+        <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
             <div>
-              <h2 className="text-2xl font-bold flex items-center gap-3">
-                <Globe className="h-8 w-8 text-primary" />
+              <h2 className="text-lg sm:text-2xl font-bold flex items-center gap-2 sm:gap-3">
+                <Globe className="h-5 w-5 sm:h-8 sm:w-8 text-primary" />
                 Global Security Intelligence Hub
               </h2>
-              <p className="text-muted-foreground mt-1">
-                Unified multi-sector security operations platform • Protecting critical infrastructure worldwide
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                Unified multi-sector security operations platform
               </p>
             </div>
-            <div className="text-right">
-              <div className="text-4xl font-bold text-primary">{platforms.length}</div>
-              <div className="text-sm text-muted-foreground">Active Platforms</div>
+            <div className="text-left sm:text-right">
+              <div className="text-2xl sm:text-4xl font-bold text-primary">{platforms.length}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Active Platforms</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-5 gap-4">
-            <div className="text-center p-4 bg-background/50 rounded-lg border border-primary/20">
-              <div className="text-3xl font-bold text-primary">{totalMetrics.monitored.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">Monitored Assets</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
+            <div className="text-center p-2 sm:p-4 bg-background/50 rounded-lg border border-primary/20">
+              <div className="text-lg sm:text-3xl font-bold text-primary">{totalMetrics.monitored.toLocaleString()}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Monitored Assets</div>
             </div>
-            <div className="text-center p-4 bg-background/50 rounded-lg border border-primary/20">
-              <div className="text-3xl font-bold text-red-400">{totalMetrics.threats}</div>
-              <div className="text-xs text-muted-foreground">Active Threats</div>
+            <div className="text-center p-2 sm:p-4 bg-background/50 rounded-lg border border-primary/20">
+              <div className="text-lg sm:text-3xl font-bold text-red-400">{totalMetrics.threats}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Active Threats</div>
             </div>
-            <div className="text-center p-4 bg-background/50 rounded-lg border border-primary/20">
-              <div className="text-3xl font-bold text-green-400">{totalMetrics.resolved}</div>
-              <div className="text-xs text-muted-foreground">Resolved Today</div>
+            <div className="text-center p-2 sm:p-4 bg-background/50 rounded-lg border border-primary/20">
+              <div className="text-lg sm:text-3xl font-bold text-green-400">{totalMetrics.resolved}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Resolved Today</div>
             </div>
-            <div className="text-center p-4 bg-background/50 rounded-lg border border-primary/20">
-              <div className="text-3xl font-bold text-yellow-400">{platforms.filter(p => p.threatLevel === 'severe' || p.threatLevel === 'high').length}</div>
-              <div className="text-xs text-muted-foreground">High Alert Sectors</div>
+            <div className="text-center p-2 sm:p-4 bg-background/50 rounded-lg border border-primary/20">
+              <div className="text-lg sm:text-3xl font-bold text-yellow-400">{platforms.filter(p => p.threatLevel === 'severe' || p.threatLevel === 'high').length}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">High Alert</div>
             </div>
-            <div className="text-center p-4 bg-background/50 rounded-lg border border-primary/20">
-              <div className="text-3xl font-bold text-blue-400">99.99%</div>
-              <div className="text-xs text-muted-foreground">Global Uptime</div>
+            <div className="text-center p-2 sm:p-4 bg-background/50 rounded-lg border border-primary/20 col-span-2 sm:col-span-1">
+              <div className="text-lg sm:text-3xl font-bold text-blue-400">99.99%</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground">Global Uptime</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Platform Grid */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
         {platforms.map(platform => (
           <Card 
             key={platform.id}
-            className={`cursor-pointer transition-all hover:scale-102 hover:shadow-lg border-2 ${getThreatLevelBorder(platform.threatLevel)} ${
+            className={`cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg border-2 ${getThreatLevelBorder(platform.threatLevel)} ${
               selectedPlatform?.id === platform.id ? 'ring-2 ring-primary' : ''
             }`}
             onClick={() => setSelectedPlatform(platform)}
           >
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`p-2 rounded-lg ${platform.threatLevel === 'severe' || platform.threatLevel === 'high' ? 'bg-red-500/20 text-red-400' : 'bg-primary/20 text-primary'}`}>
-                  {platform.icon}
+            <CardContent className="pt-3 sm:pt-4 px-2 sm:px-4">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <div className={`p-1.5 sm:p-2 rounded-lg ${platform.threatLevel === 'severe' || platform.threatLevel === 'high' ? 'bg-red-500/20 text-red-400' : 'bg-primary/20 text-primary'}`}>
+                  <div className="h-4 w-4 sm:h-6 sm:w-6">{platform.icon}</div>
                 </div>
-                <Badge className={getThreatLevelColor(platform.threatLevel)}>
+                <Badge className={`text-[8px] sm:text-[10px] ${getThreatLevelColor(platform.threatLevel)}`}>
                   {platform.threatLevel.toUpperCase()}
                 </Badge>
               </div>
-              <h3 className="font-bold text-sm mb-1">{platform.name}</h3>
-              <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{platform.description}</p>
-              <div className="grid grid-cols-2 gap-2 text-center text-xs">
-                <div className="p-2 bg-background/50 rounded">
-                  <div className="font-bold">{platform.metrics.monitored.toLocaleString()}</div>
-                  <div className="text-muted-foreground">Assets</div>
+              <h3 className="font-bold text-[10px] sm:text-sm mb-0.5 sm:mb-1 line-clamp-1">{platform.name}</h3>
+              <p className="text-[8px] sm:text-xs text-muted-foreground mb-2 sm:mb-3 line-clamp-2 hidden sm:block">{platform.description}</p>
+              <div className="grid grid-cols-2 gap-1 sm:gap-2 text-center text-[8px] sm:text-xs">
+                <div className="p-1 sm:p-2 bg-background/50 rounded">
+                  <div className="font-bold text-[10px] sm:text-sm">{platform.metrics.monitored.toLocaleString()}</div>
+                  <div className="text-muted-foreground hidden sm:block">Assets</div>
                 </div>
-                <div className="p-2 bg-background/50 rounded">
-                  <div className="font-bold text-red-400">{platform.metrics.threats}</div>
-                  <div className="text-muted-foreground">Threats</div>
+                <div className="p-1 sm:p-2 bg-background/50 rounded">
+                  <div className="font-bold text-[10px] sm:text-sm text-red-400">{platform.metrics.threats}</div>
+                  <div className="text-muted-foreground hidden sm:block">Threats</div>
                 </div>
               </div>
             </CardContent>
@@ -253,106 +256,151 @@ export const MultiPlatformSecurityHub: React.FC = () => {
       {selectedPlatform && (
         <Card className={`border-2 ${getThreatLevelBorder(selectedPlatform.threatLevel)}`}>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-lg ${selectedPlatform.threatLevel === 'severe' || selectedPlatform.threatLevel === 'high' ? 'bg-red-500/20 text-red-400' : 'bg-primary/20 text-primary'}`}>
                   {selectedPlatform.icon}
                 </div>
                 <div>
-                  <CardTitle>{selectedPlatform.name}</CardTitle>
-                  <CardDescription>{selectedPlatform.description}</CardDescription>
+                  <CardTitle className="text-sm sm:text-base">{selectedPlatform.name}</CardTitle>
+                  <CardDescription className="text-xs">{selectedPlatform.description}</CardDescription>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline">{selectedPlatform.sector}</Badge>
-                <Badge className={getThreatLevelColor(selectedPlatform.threatLevel)}>
-                  Threat Level: {selectedPlatform.threatLevel.toUpperCase()}
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="outline" className="text-xs">{selectedPlatform.sector}</Badge>
+                <Badge className={`text-xs ${getThreatLevelColor(selectedPlatform.threatLevel)}`}>
+                  {selectedPlatform.threatLevel.toUpperCase()}
                 </Badge>
-                <Badge variant={selectedPlatform.status === 'active' ? 'default' : 'secondary'}>
-                  {selectedPlatform.status}
-                </Badge>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => setShowNetworkConfig(!showNetworkConfig)}
+                  className="text-xs"
+                >
+                  <Settings className="h-3 w-3 mr-1" />
+                  {showNetworkConfig ? 'Hide' : 'Configure'} Network
+                </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-6">
-              <div>
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <Target className="h-4 w-4 text-primary" />
-                  Security Features
-                </h4>
-                <div className="space-y-2">
-                  {selectedPlatform.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm p-2 bg-background/50 rounded">
-                      <Zap className="h-4 w-4 text-primary" />
-                      {feature}
+            <Tabs defaultValue="overview" className="space-y-4">
+              <TabsList className="grid grid-cols-3 w-full max-w-md">
+                <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
+                <TabsTrigger value="metrics" className="text-xs">Metrics</TabsTrigger>
+                <TabsTrigger value="network" className="text-xs">Network Config</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                      <Target className="h-4 w-4 text-primary" />
+                      Security Features
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedPlatform.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-xs p-2 bg-background/50 rounded">
+                          <Zap className="h-3 w-3 text-primary flex-shrink-0" />
+                          <span className="truncate">{feature}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                      <Activity className="h-4 w-4 text-primary" />
+                      Real-Time Metrics
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="p-2 bg-background/50 rounded-lg">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Monitored Assets</span>
+                          <span className="font-bold">{selectedPlatform.metrics.monitored.toLocaleString()}</span>
+                        </div>
+                      </div>
+                      <div className="p-2 bg-background/50 rounded-lg">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Active Threats</span>
+                          <span className="font-bold text-red-400">{selectedPlatform.metrics.threats}</span>
+                        </div>
+                      </div>
+                      <div className="p-2 bg-background/50 rounded-lg">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Resolved Today</span>
+                          <span className="font-bold text-green-400">{selectedPlatform.metrics.resolved}</span>
+                        </div>
+                      </div>
+                      <div className="p-2 bg-background/50 rounded-lg">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Platform Uptime</span>
+                          <span className="font-bold text-primary">{selectedPlatform.metrics.uptime}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                      <AlertTriangle className="h-4 w-4 text-primary" />
+                      Threat Intelligence
+                    </h4>
+                    <div className="p-4 bg-background/50 rounded-lg border border-primary/20">
+                      <div className="text-center mb-3">
+                        <div className={`text-4xl font-bold ${
+                          selectedPlatform.threatLevel === 'severe' ? 'text-red-500' :
+                          selectedPlatform.threatLevel === 'high' ? 'text-orange-500' :
+                          selectedPlatform.threatLevel === 'elevated' ? 'text-yellow-500' :
+                          selectedPlatform.threatLevel === 'moderate' ? 'text-blue-500' :
+                          'text-green-500'
+                        }`}>
+                          {selectedPlatform.threatLevel === 'severe' ? '5' :
+                           selectedPlatform.threatLevel === 'high' ? '4' :
+                           selectedPlatform.threatLevel === 'elevated' ? '3' :
+                           selectedPlatform.threatLevel === 'moderate' ? '2' : '1'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Threat Level</div>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground text-center">
+                        {selectedPlatform.threatLevel === 'severe' && 'MAXIMUM ALERT: Imminent attack'}
+                        {selectedPlatform.threatLevel === 'high' && 'HIGH ALERT: Significant threat'}
+                        {selectedPlatform.threatLevel === 'elevated' && 'ELEVATED: Increased activity'}
+                        {selectedPlatform.threatLevel === 'moderate' && 'GUARDED: General awareness'}
+                        {selectedPlatform.threatLevel === 'low' && 'LOW: Normal posture'}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-primary" />
-                  Real-Time Metrics
-                </h4>
-                <div className="space-y-3">
-                  <div className="p-3 bg-background/50 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Monitored Assets</span>
-                      <span className="font-bold">{selectedPlatform.metrics.monitored.toLocaleString()}</span>
-                    </div>
+              </TabsContent>
+
+              <TabsContent value="metrics">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3 bg-primary/10 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-primary">{selectedPlatform.metrics.monitored.toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">Assets</div>
                   </div>
-                  <div className="p-3 bg-background/50 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Active Threats</span>
-                      <span className="font-bold text-red-400">{selectedPlatform.metrics.threats}</span>
-                    </div>
+                  <div className="p-3 bg-destructive/10 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-destructive">{selectedPlatform.metrics.threats}</div>
+                    <div className="text-xs text-muted-foreground">Threats</div>
                   </div>
-                  <div className="p-3 bg-background/50 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Resolved Today</span>
-                      <span className="font-bold text-green-400">{selectedPlatform.metrics.resolved}</span>
-                    </div>
+                  <div className="p-3 bg-success/10 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-success">{selectedPlatform.metrics.resolved}</div>
+                    <div className="text-xs text-muted-foreground">Resolved</div>
                   </div>
-                  <div className="p-3 bg-background/50 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Platform Uptime</span>
-                      <span className="font-bold text-primary">{selectedPlatform.metrics.uptime}</span>
-                    </div>
+                  <div className="p-3 bg-info/10 rounded-lg text-center">
+                    <div className="text-2xl font-bold text-info">{selectedPlatform.metrics.uptime}</div>
+                    <div className="text-xs text-muted-foreground">Uptime</div>
                   </div>
                 </div>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-primary" />
-                  Threat Intelligence
-                </h4>
-                <div className="p-4 bg-background/50 rounded-lg border border-primary/20">
-                  <div className="text-center mb-4">
-                    <div className={`text-5xl font-bold ${
-                      selectedPlatform.threatLevel === 'severe' ? 'text-red-500' :
-                      selectedPlatform.threatLevel === 'high' ? 'text-orange-500' :
-                      selectedPlatform.threatLevel === 'elevated' ? 'text-yellow-500' :
-                      selectedPlatform.threatLevel === 'moderate' ? 'text-blue-500' :
-                      'text-green-500'
-                    }`}>
-                      {selectedPlatform.threatLevel === 'severe' ? '5' :
-                       selectedPlatform.threatLevel === 'high' ? '4' :
-                       selectedPlatform.threatLevel === 'elevated' ? '3' :
-                       selectedPlatform.threatLevel === 'moderate' ? '2' : '1'}
-                    </div>
-                    <div className="text-sm text-muted-foreground">Threat Condition Level</div>
-                  </div>
-                  <div className="text-xs text-muted-foreground text-center">
-                    {selectedPlatform.threatLevel === 'severe' && 'MAXIMUM ALERT: Imminent or ongoing attack'}
-                    {selectedPlatform.threatLevel === 'high' && 'HIGH ALERT: Significant threat detected'}
-                    {selectedPlatform.threatLevel === 'elevated' && 'ELEVATED: Increased threat activity'}
-                    {selectedPlatform.threatLevel === 'moderate' && 'GUARDED: General threat awareness'}
-                    {selectedPlatform.threatLevel === 'low' && 'LOW: Normal security posture'}
-                  </div>
-                </div>
-              </div>
-            </div>
+              </TabsContent>
+
+              <TabsContent value="network">
+                <SectorNetworkConfig
+                  sectorId={selectedPlatform.id}
+                  sectorName={selectedPlatform.name}
+                  sectorIcon={selectedPlatform.icon}
+                />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       )}
