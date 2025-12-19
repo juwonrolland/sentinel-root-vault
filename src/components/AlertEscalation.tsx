@@ -239,28 +239,57 @@ export const AlertEscalation = ({ className }: AlertEscalationProps) => {
 
   const addNewRule = () => {
     const newRule: EscalationRule = {
-      id: `rule-${Date.now()}`,
+      id: `rule-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: 'New Escalation Rule',
       severity: 'high',
       threshold: 5,
       timeWindow: 30,
       channels: ['email'],
-      recipients: [],
-      enabled: false,
+      recipients: ['team@example.com'],
+      enabled: true,
       escalationLevel: 1,
     };
+    
+    // Add rule immediately to the list
     setRules(prev => [...prev, newRule]);
-    setEditingRule(newRule);
+    
+    // Open editor for the new rule
+    setTimeout(() => {
+      setEditingRule(newRule);
+    }, 100);
+    
+    toast({
+      title: "Rule Created",
+      description: "New escalation rule created. Customize it in the editor.",
+    });
   };
 
   const updateRule = (updatedRule: EscalationRule) => {
+    if (!updatedRule.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Rule name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (updatedRule.channels.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "At least one notification channel is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setRules(prev =>
       prev.map(r => r.id === updatedRule.id ? updatedRule : r)
     );
     setEditingRule(null);
     toast({
       title: "Rule Updated",
-      description: "Escalation rule has been saved",
+      description: "Escalation rule has been saved successfully",
     });
   };
 
@@ -593,13 +622,15 @@ export const AlertEscalation = ({ className }: AlertEscalationProps) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Notification Channels</Label>
+                  <Label>Notification Channels *</Label>
                   <div className="flex flex-wrap gap-2">
                     {['email', 'sms', 'push', 'webhook'].map((ch) => (
                       <Button
                         key={ch}
+                        type="button"
                         variant={editingRule.channels.includes(ch as any) ? 'default' : 'outline'}
                         size="sm"
+                        className="transition-all"
                         onClick={() => {
                           const channels = editingRule.channels.includes(ch as any)
                             ? editingRule.channels.filter(c => c !== ch)
@@ -612,13 +643,34 @@ export const AlertEscalation = ({ className }: AlertEscalationProps) => {
                       </Button>
                     ))}
                   </div>
+                  {editingRule.channels.length === 0 && (
+                    <p className="text-xs text-destructive">Select at least one channel</p>
+                  )}
                 </div>
 
-                <div className="flex justify-end gap-2">
+                <div className="space-y-2">
+                  <Label>Recipients (comma-separated)</Label>
+                  <Input
+                    placeholder="email@example.com, +1234567890"
+                    value={editingRule.recipients.join(', ')}
+                    onChange={(e) => {
+                      const recipients = e.target.value
+                        .split(',')
+                        .map(r => r.trim())
+                        .filter(r => r.length > 0);
+                      setEditingRule({ ...editingRule, recipients });
+                    }}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
                   <Button variant="outline" onClick={() => setEditingRule(null)}>
                     Cancel
                   </Button>
-                  <Button onClick={() => updateRule(editingRule)}>
+                  <Button 
+                    onClick={() => updateRule(editingRule)}
+                    disabled={!editingRule.name.trim() || editingRule.channels.length === 0}
+                  >
                     Save Rule
                   </Button>
                 </div>
