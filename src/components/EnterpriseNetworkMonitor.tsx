@@ -712,42 +712,30 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-2 sm:px-4 lg:px-6 overflow-auto max-h-[calc(100vh-200px)] sm:max-h-[calc(100vh-180px)]">
-        <Tabs defaultValue="overview" className="space-y-3 sm:space-y-4 min-h-0">
-          <ScrollArea className="w-full pb-2">
-            <TabsList className="inline-flex w-max gap-0.5 sm:gap-1 p-1 h-auto">
-              <TabsTrigger value="overview" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Overview</TabsTrigger>
-              <TabsTrigger value="topology" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Topology</TabsTrigger>
-              <TabsTrigger value="devices" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Devices</TabsTrigger>
-              <TabsTrigger value="groups" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Groups</TabsTrigger>
-              <TabsTrigger value="qos" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">QoS</TabsTrigger>
-              <TabsTrigger value="discovery" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Discovery</TabsTrigger>
-              <TabsTrigger value="traffic" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Traffic</TabsTrigger>
-              <TabsTrigger value="baseline" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Baseline</TabsTrigger>
-              <TabsTrigger value="zones" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Zones</TabsTrigger>
-              <TabsTrigger value="tracer" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Trace</TabsTrigger>
-              <TabsTrigger value="health" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
-                <HeartPulse className="h-3 w-3 mr-1 hidden sm:inline" />Health
-              </TabsTrigger>
-              <TabsTrigger value="threat-response" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
-                <Zap className="h-3 w-3 mr-1 hidden sm:inline" />Response
-              </TabsTrigger>
-              <TabsTrigger value="snmp" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">SNMP</TabsTrigger>
-              <TabsTrigger value="platforms" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
-                <Layers className="h-3 w-3 mr-1 hidden sm:inline" />Platforms
-              </TabsTrigger>
-              <TabsTrigger value="leak-detection" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
-                <Search className="h-3 w-3 mr-1 hidden sm:inline" />Leaks
-              </TabsTrigger>
-              <TabsTrigger value="threat-intel" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
-                <Radio className="h-3 w-3 mr-1 hidden sm:inline" />Intel
-              </TabsTrigger>
-              <TabsTrigger value="reports" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">
-                <FileText className="h-3 w-3 mr-1 hidden sm:inline" />Reports
-              </TabsTrigger>
-              <TabsTrigger value="metrics" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Metrics</TabsTrigger>
+      <CardContent className="px-2 sm:px-4 lg:px-6 overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 160px)', minHeight: '400px' }}>
+        <Tabs defaultValue="overview" className="space-y-3 sm:space-y-4">
+          <div className="overflow-x-auto pb-2 -mx-2 px-2">
+            <TabsList className="inline-flex w-max gap-0.5 sm:gap-1 p-1 h-auto flex-nowrap">
+              <TabsTrigger value="overview" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Overview</TabsTrigger>
+              <TabsTrigger value="topology" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Topology</TabsTrigger>
+              <TabsTrigger value="devices" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Devices</TabsTrigger>
+              <TabsTrigger value="groups" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Groups</TabsTrigger>
+              <TabsTrigger value="qos" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">QoS</TabsTrigger>
+              <TabsTrigger value="discovery" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Discovery</TabsTrigger>
+              <TabsTrigger value="traffic" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Traffic</TabsTrigger>
+              <TabsTrigger value="baseline" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Baseline</TabsTrigger>
+              <TabsTrigger value="zones" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Zones</TabsTrigger>
+              <TabsTrigger value="tracer" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Trace</TabsTrigger>
+              <TabsTrigger value="health" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Health</TabsTrigger>
+              <TabsTrigger value="threat-response" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Response</TabsTrigger>
+              <TabsTrigger value="snmp" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">SNMP</TabsTrigger>
+              <TabsTrigger value="platforms" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Platforms</TabsTrigger>
+              <TabsTrigger value="leak-detection" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Leaks</TabsTrigger>
+              <TabsTrigger value="threat-intel" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Intel</TabsTrigger>
+              <TabsTrigger value="reports" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Reports</TabsTrigger>
+              <TabsTrigger value="metrics" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Metrics</TabsTrigger>
             </TabsList>
-          </ScrollArea>
+          </div>
 
           <TabsContent value="overview" className="space-y-3 sm:space-y-4">
             {/* Global Stats Bar */}
