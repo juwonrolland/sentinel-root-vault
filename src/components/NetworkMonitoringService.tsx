@@ -215,64 +215,88 @@ export const NetworkMonitoringService = ({ className, onDevicesDiscovered }: Net
     setIsScanning(true);
     setScanProgress(0);
     
-    // Simulate network scanning
-    const deviceTypes: DiscoveredDevice['type'][] = ['router', 'server', 'workstation', 'mobile', 'iot', 'unknown'];
-    const newDevices: DiscoveredDevice[] = [];
-    
-    const subnet = networkInfo.gateway.split('.').slice(0, 3).join('.');
-    const totalHosts = 20 + Math.floor(Math.random() * 30);
-    
-    for (let i = 0; i < totalHosts; i++) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      setScanProgress((i / totalHosts) * 100);
+    try {
+      // Get current network information from browser APIs
+      const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+      const effectiveType = connection?.effectiveType || 'unknown';
+      const downlink = connection?.downlink || 0;
       
-      const ip = `${subnet}.${Math.floor(Math.random() * 254) + 1}`;
-      const deviceType = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
-      const isRouter = ip === networkInfo.gateway;
+      // Simulate comprehensive network scanning with realistic device discovery
+      const deviceTypes: DiscoveredDevice['type'][] = ['router', 'server', 'workstation', 'mobile', 'iot', 'unknown'];
+      const newDevices: DiscoveredDevice[] = [];
       
-      const device: DiscoveredDevice = {
-        id: `device-${Date.now()}-${i}`,
-        name: isRouter ? 'Network Gateway' : 
-              deviceType === 'server' ? `Server-${i}` :
-              deviceType === 'workstation' ? `Workstation-${i}` :
-              deviceType === 'mobile' ? `Mobile-${i}` :
-              deviceType === 'iot' ? `IoT-Device-${i}` :
-              `Device-${i}`,
-        ipAddress: isRouter ? networkInfo.gateway : ip,
-        macAddress: generateMacAddress(),
-        type: isRouter ? 'router' : deviceType,
-        vendor: VENDORS[Math.floor(Math.random() * VENDORS.length)],
-        status: Math.random() > 0.1 ? 'online' : 'warning',
-        signalStrength: Math.random() > 0.5 ? 60 + Math.floor(Math.random() * 40) : undefined,
-        lastSeen: new Date().toISOString(),
-        openPorts: Array.from({ length: Math.floor(Math.random() * 5) }, () => 
-          [22, 80, 443, 3389, 8080, 3306, 5432][Math.floor(Math.random() * 7)]
-        ).filter((v, i, a) => a.indexOf(v) === i),
-        services: ['HTTP', 'SSH', 'DNS', 'DHCP', 'SMB'].slice(0, Math.floor(Math.random() * 4) + 1),
-        threats: 0,
-        isSecure: Math.random() > 0.2,
-        connectionType: Math.random() > 0.3 ? 'wifi' : 'ethernet',
-      };
+      // Scan the local subnet
+      const subnet = networkInfo.gateway.split('.').slice(0, 3).join('.');
+      const totalHosts = 15 + Math.floor(Math.random() * 25); // Between 15-40 devices
       
-      newDevices.push(device);
-    }
-    
-    setDiscoveredDevices(newDevices);
-    onDevicesDiscovered?.(newDevices);
-    setScanProgress(100);
-    setIsScanning(false);
-    
-    toast({
-      title: "Network Scan Complete",
-      description: `Discovered ${newDevices.length} devices on the network`,
-    });
-
-    // Log initial scan
-    newDevices.forEach(device => {
-      if (device.status === 'warning' || !device.isSecure) {
-        logSecurityEvent(device, 'Device requires attention');
+      for (let i = 0; i < totalHosts; i++) {
+        // Simulate scanning delay with progress
+        await new Promise(resolve => setTimeout(resolve, 80));
+        setScanProgress(((i + 1) / totalHosts) * 100);
+        
+        const hostNum = Math.floor(Math.random() * 254) + 1;
+        const ip = `${subnet}.${hostNum}`;
+        const deviceType = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
+        const isRouter = i === 0; // First device is always the router
+        
+        const device: DiscoveredDevice = {
+          id: `device-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 9)}`,
+          name: isRouter ? 'Network Gateway' : 
+                deviceType === 'server' ? `Server-${hostNum}` :
+                deviceType === 'workstation' ? `Workstation-${hostNum}` :
+                deviceType === 'mobile' ? `Mobile-Device-${hostNum}` :
+                deviceType === 'iot' ? `IoT-Device-${hostNum}` :
+                `Device-${hostNum}`,
+          ipAddress: isRouter ? networkInfo.gateway : ip,
+          macAddress: generateMacAddress(),
+          type: isRouter ? 'router' : deviceType,
+          vendor: VENDORS[Math.floor(Math.random() * VENDORS.length)],
+          status: Math.random() > 0.08 ? 'online' : 'warning',
+          signalStrength: Math.random() > 0.4 ? 55 + Math.floor(Math.random() * 45) : undefined,
+          lastSeen: new Date().toISOString(),
+          openPorts: Array.from({ length: Math.floor(Math.random() * 5) }, () => 
+            [22, 80, 443, 3389, 8080, 3306, 5432, 21, 25, 110, 143][Math.floor(Math.random() * 11)]
+          ).filter((v, idx, a) => a.indexOf(v) === idx),
+          services: ['HTTP', 'SSH', 'DNS', 'DHCP', 'SMB', 'FTP', 'SMTP'].slice(0, Math.floor(Math.random() * 5) + 1),
+          threats: 0,
+          isSecure: Math.random() > 0.15,
+          connectionType: Math.random() > 0.35 ? 'wifi' : 'ethernet',
+        };
+        
+        newDevices.push(device);
       }
-    });
+      
+      // Remove duplicates by IP
+      const uniqueDevices = newDevices.filter((device, index, self) =>
+        index === self.findIndex(d => d.ipAddress === device.ipAddress)
+      );
+      
+      setDiscoveredDevices(uniqueDevices);
+      onDevicesDiscovered?.(uniqueDevices);
+      setScanProgress(100);
+      
+      toast({
+        title: "Network Scan Complete",
+        description: `Discovered ${uniqueDevices.length} devices on the network (${effectiveType} connection)`,
+      });
+
+      // Log devices that need attention
+      uniqueDevices.forEach(device => {
+        if (device.status === 'warning' || !device.isSecure) {
+          logSecurityEvent(device, 'Device requires security review');
+        }
+      });
+      
+    } catch (error) {
+      console.error('Network scan error:', error);
+      toast({
+        title: "Scan Error",
+        description: "An error occurred during the network scan. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   const getSignalIcon = (strength?: number) => {
