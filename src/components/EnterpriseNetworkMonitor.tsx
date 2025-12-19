@@ -160,6 +160,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitorProps) => {
+  // Enable scrolling on entire dashboard
   const [zones, setZones] = useState<NetworkZone[]>([]);
   const [devices, setDevices] = useState<NetworkDevice[]>(() => {
     const saved = localStorage.getItem('enterprise-network-devices');
@@ -488,8 +489,8 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
   const deviceStats = getDeviceStats();
 
   return (
-    <Card className={cn("cyber-card", className)}>
-      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6">
+    <Card className={cn("cyber-card overflow-hidden", className)}>
+      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 flex-shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
           <CardTitle className="flex items-center gap-2 text-sm sm:text-base lg:text-lg">
             <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-primary animate-pulse flex-shrink-0" />
@@ -711,8 +712,8 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-2 sm:px-4 lg:px-6">
-        <Tabs defaultValue="overview" className="space-y-3 sm:space-y-4">
+      <CardContent className="px-2 sm:px-4 lg:px-6 overflow-auto max-h-[calc(100vh-200px)] sm:max-h-[calc(100vh-180px)]">
+        <Tabs defaultValue="overview" className="space-y-3 sm:space-y-4 min-h-0">
           <ScrollArea className="w-full pb-2">
             <TabsList className="inline-flex w-max gap-0.5 sm:gap-1 p-1 h-auto">
               <TabsTrigger value="overview" className="text-[10px] sm:text-xs px-2 sm:px-3 py-1 sm:py-1.5">Overview</TabsTrigger>

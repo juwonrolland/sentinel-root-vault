@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +37,7 @@ import {
   Wifi,
   Monitor,
   Settings,
+  RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -89,20 +90,15 @@ export const SectorNetworkConfig: React.FC<SectorNetworkConfigProps> = ({
   sectorIcon,
   onConfigUpdate,
 }) => {
-  const [config, setConfig] = useState<SectorConfig>(() => {
-    const saved = localStorage.getItem(`sector-config-${sectorId}`);
-    return saved
-      ? JSON.parse(saved)
-      : {
-          sectorId,
-          sectorName,
-          assets: [],
-          primaryContact: '',
-          contactEmail: '',
-          networkRange: '',
-          vlanId: '',
-          notes: '',
-        };
+  const [config, setConfig] = useState<SectorConfig>({
+    sectorId,
+    sectorName,
+    assets: [],
+    primaryContact: '',
+    contactEmail: '',
+    networkRange: '',
+    vlanId: '',
+    notes: '',
   });
 
   const [isAddingAsset, setIsAddingAsset] = useState(false);
@@ -111,71 +107,129 @@ export const SectorNetworkConfig: React.FC<SectorNetworkConfigProps> = ({
     type: 'server',
     status: 'monitoring',
   });
+  const [isSaving, setIsSaving] = useState(false);
 
+  // Load config from localStorage on mount
   useEffect(() => {
-    localStorage.setItem(`sector-config-${sectorId}`, JSON.stringify(config));
-    onConfigUpdate?.(config);
-  }, [config, sectorId, onConfigUpdate]);
+    const saved = localStorage.getItem(`sector-config-${sectorId}`);
+    if (saved) {
+      try {
+        const parsedConfig = JSON.parse(saved);
+        setConfig(parsedConfig);
+      } catch (error) {
+        console.error('Failed to parse saved config:', error);
+      }
+    }
+  }, [sectorId]);
+
+  // Save config to localStorage whenever it changes
+  const saveConfig = useCallback((newConfig: SectorConfig) => {
+    try {
+      localStorage.setItem(`sector-config-${sectorId}`, JSON.stringify(newConfig));
+      onConfigUpdate?.(newConfig);
+    } catch (error) {
+      console.error('Failed to save config:', error);
+      toast.error('Failed to save configuration');
+    }
+  }, [sectorId, onConfigUpdate]);
 
   const addAsset = () => {
-    if (!newAsset.name || !newAsset.ipAddress) {
-      toast.error('Name and IP address are required');
+    if (!newAsset.name?.trim()) {
+      toast.error('Asset name is required');
+      return;
+    }
+    
+    if (!newAsset.ipAddress?.trim()) {
+      toast.error('IP address is required');
       return;
     }
 
     const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-    if (!ipRegex.test(newAsset.ipAddress)) {
+    if (!ipRegex.test(newAsset.ipAddress.trim())) {
       toast.error('Please enter a valid IPv4 address');
       return;
     }
 
+    // Check for duplicate IP addresses
+    if (config.assets.some(a => a.ipAddress === newAsset.ipAddress?.trim())) {
+      toast.error('An asset with this IP address already exists');
+      return;
+    }
+
+    setIsSaving(true);
+    
     const asset: NetworkAsset = {
-      id: `asset-${Date.now()}`,
-      name: newAsset.name!,
-      type: newAsset.type as any,
-      ipAddress: newAsset.ipAddress!,
-      subnet: newAsset.subnet,
-      gateway: newAsset.gateway,
+      id: `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: newAsset.name.trim(),
+      type: newAsset.type as any || 'server',
+      ipAddress: newAsset.ipAddress.trim(),
+      subnet: newAsset.subnet?.trim() || undefined,
+      gateway: newAsset.gateway?.trim() || undefined,
       port: newAsset.port,
-      description: newAsset.description,
+      description: newAsset.description?.trim() || undefined,
       status: 'monitoring',
       addedAt: new Date().toISOString(),
     };
 
-    setConfig((prev) => ({
-      ...prev,
-      assets: [...prev.assets, asset],
-    }));
+    const updatedConfig = {
+      ...config,
+      assets: [...config.assets, asset],
+    };
+    
+    setConfig(updatedConfig);
+    saveConfig(updatedConfig);
 
     setNewAsset({ type: 'server', status: 'monitoring' });
     setIsAddingAsset(false);
-    toast.success(`${asset.name} added for monitoring`);
+    setIsSaving(false);
+    toast.success(`${asset.name} added successfully for monitoring`);
   };
 
   const updateAsset = () => {
     if (!editingAsset) return;
 
-    setConfig((prev) => ({
-      ...prev,
-      assets: prev.assets.map((a) =>
-        a.id === editingAsset.id ? editingAsset : a
-      ),
-    }));
+    if (!editingAsset.name?.trim() || !editingAsset.ipAddress?.trim()) {
+      toast.error('Name and IP address are required');
+      return;
+    }
 
+    const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!ipRegex.test(editingAsset.ipAddress.trim())) {
+      toast.error('Please enter a valid IPv4 address');
+      return;
+    }
+
+    setIsSaving(true);
+
+    const updatedConfig = {
+      ...config,
+      assets: config.assets.map((a) =>
+        a.id === editingAsset.id ? { ...editingAsset, name: editingAsset.name.trim(), ipAddress: editingAsset.ipAddress.trim() } : a
+      ),
+    };
+
+    setConfig(updatedConfig);
+    saveConfig(updatedConfig);
     setEditingAsset(null);
-    toast.success('Asset updated');
+    setIsSaving(false);
+    toast.success('Asset updated successfully');
   };
 
   const removeAsset = (assetId: string) => {
-    setConfig((prev) => ({
-      ...prev,
-      assets: prev.assets.filter((a) => a.id !== assetId),
-    }));
-    toast.success('Asset removed');
+    const updatedConfig = {
+      ...config,
+      assets: config.assets.filter((a) => a.id !== assetId),
+    };
+    
+    setConfig(updatedConfig);
+    saveConfig(updatedConfig);
+    toast.success('Asset removed successfully');
   };
 
   const updateConfig = (key: keyof SectorConfig, value: any) => {
-    setConfig((prev) => ({ ...prev, [key]: value }));
+    const updatedConfig = { ...config, [key]: value };
+    setConfig(updatedConfig);
+    saveConfig(updatedConfig);
   };
 
   const getAssetIcon = (type: string) => {
