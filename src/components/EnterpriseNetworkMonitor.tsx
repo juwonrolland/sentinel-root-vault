@@ -80,6 +80,9 @@ import { MultiPlatformSecurityHub } from "@/components/MultiPlatformSecurityHub"
 import { LeakDetectionSystem } from "@/components/LeakDetectionSystem";
 import { RealTimeThreatIntelligence } from "@/components/RealTimeThreatIntelligence";
 import { SecurityReportExporter } from "@/components/SecurityReportExporter";
+import { GlobalNetworkRegistry } from "@/components/GlobalNetworkRegistry";
+import { AdvancedNetworkScanner } from "@/components/AdvancedNetworkScanner";
+import { useRegisteredNetworks } from "@/hooks/useRegisteredNetworks";
 
 interface NetworkDevice {
   id: string;
@@ -733,6 +736,8 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
               <TabsTrigger value="leak-detection" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Leaks</TabsTrigger>
               <TabsTrigger value="threat-intel" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Intel</TabsTrigger>
               <TabsTrigger value="reports" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Reports</TabsTrigger>
+              <TabsTrigger value="registry" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Registry</TabsTrigger>
+              <TabsTrigger value="scanner" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Scanner</TabsTrigger>
               <TabsTrigger value="metrics" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Metrics</TabsTrigger>
             </TabsList>
           </div>
@@ -1156,6 +1161,16 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
           {/* Security Reports Tab */}
           <TabsContent value="reports" className="space-y-4">
             <SecurityReportExporter />
+          </TabsContent>
+
+          {/* Global Network Registry Tab */}
+          <TabsContent value="registry" className="space-y-4">
+            <GlobalNetworkRegistry />
+          </TabsContent>
+
+          {/* Advanced Network Scanner Tab */}
+          <TabsContent value="scanner" className="space-y-4">
+            <AdvancedNetworkScanner registeredNetworksOnly={true} />
           </TabsContent>
         </Tabs>
       </CardContent>
