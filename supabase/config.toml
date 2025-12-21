@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.threat-intelligence]
 verify_jwt = false
+
+[functions.network-security-notifications]
+verify_jwt = false
