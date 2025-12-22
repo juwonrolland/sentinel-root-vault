@@ -353,7 +353,48 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { type, recipients, data }: NotificationRequest = await req.json();
+    const body = await req.json();
+    
+    // Handle both legacy format (type, recipients, data) and new format (type, network/threat, recipientEmail)
+    let type: string;
+    let recipients: string[];
+    let data: NotificationRequest['data'];
+
+    if (body.recipients) {
+      // Legacy format
+      type = body.type;
+      recipients = body.recipients;
+      data = body.data;
+    } else {
+      // New format from frontend hooks
+      type = body.type === 'registration' ? 'network_registered' : 
+             body.type === 'threat' ? 'threat_detected' :
+             body.type === 'resolved' ? 'threat_resolved' : body.type;
+      
+      recipients = body.recipientEmail ? [body.recipientEmail] : [];
+      
+      if (body.network) {
+        data = {
+          networkName: body.network.name,
+          networkRange: body.network.networkRange,
+          sector: body.network.sector,
+          location: body.network.location,
+        };
+      } else if (body.threat) {
+        data = {
+          threatType: body.threat.type,
+          threatSeverity: body.threat.severity,
+          deviceName: body.threat.deviceName,
+          deviceIp: body.threat.deviceIp,
+          networkName: body.threat.networkName,
+          threatDetails: body.threat.description,
+          remediationSteps: body.threat.remediationSteps,
+          geoLocation: body.threat.geoLocation,
+        };
+      } else {
+        data = {};
+      }
+    }
 
     console.log(`Processing notification type: ${type} for ${recipients.length} recipients`);
 
