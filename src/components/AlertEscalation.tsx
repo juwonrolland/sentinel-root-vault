@@ -250,17 +250,43 @@ export const AlertEscalation = ({ className }: AlertEscalationProps) => {
       escalationLevel: 1,
     };
     
-    // Add rule immediately to the list
-    setRules(prev => [...prev, newRule]);
+    // Open editor first with the new rule template (don't add to list yet)
+    setEditingRule(newRule);
+  };
+
+  const saveNewRule = (rule: EscalationRule) => {
+    if (!rule.name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Rule name is required",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    // Open editor for the new rule
-    setTimeout(() => {
-      setEditingRule(newRule);
-    }, 100);
+    if (rule.channels.length === 0) {
+      toast({
+        title: "Validation Error",
+        description: "At least one notification channel is required",
+        variant: "destructive",
+      });
+      return;
+    }
     
+    // Check if this is a new rule or an existing one
+    const existingRule = rules.find(r => r.id === rule.id);
+    if (existingRule) {
+      // Update existing rule
+      setRules(prev => prev.map(r => r.id === rule.id ? rule : r));
+    } else {
+      // Add new rule
+      setRules(prev => [...prev, rule]);
+    }
+    
+    setEditingRule(null);
     toast({
-      title: "Rule Created",
-      description: "New escalation rule created. Customize it in the editor.",
+      title: existingRule ? "Rule Updated" : "Rule Created",
+      description: existingRule ? "Escalation rule has been saved successfully" : "New escalation rule has been added",
     });
   };
 
@@ -668,10 +694,10 @@ export const AlertEscalation = ({ className }: AlertEscalationProps) => {
                     Cancel
                   </Button>
                   <Button 
-                    onClick={() => updateRule(editingRule)}
+                    onClick={() => saveNewRule(editingRule)}
                     disabled={!editingRule.name.trim() || editingRule.channels.length === 0}
                   >
-                    Save Rule
+                    {rules.find(r => r.id === editingRule.id) ? 'Save Rule' : 'Add Rule'}
                   </Button>
                 </div>
               </CardContent>

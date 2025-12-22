@@ -42,10 +42,13 @@ const queryClient = new QueryClient({
   },
 });
 
-// Loading fallback component
+// Fast loading fallback with skeleton
 const PageLoader = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
-    <LoadingSpinner size="lg" />
+    <div className="flex flex-col items-center gap-4">
+      <LoadingSpinner size="lg" />
+      <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
+    </div>
   </div>
 );
 
