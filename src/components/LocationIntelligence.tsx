@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,16 +10,17 @@ import {
   MapPin,
   Search,
   RefreshCw,
-  Flag,
   Building2,
   Wifi,
   AlertTriangle,
-  CheckCircle,
   Target,
   Navigation,
   Compass,
   Clock,
   Signal,
+  Shield,
+  Crosshair,
+  Radio,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useGeoLocation, GeoLocationData } from '@/hooks/useGeoLocation';
@@ -28,9 +30,11 @@ interface TrackedLocation {
   ip: string;
   location: GeoLocationData;
   timestamp: string;
-  type: 'network' | 'device' | 'threat' | 'user';
-  status: 'active' | 'inactive' | 'suspicious';
+  type: 'network' | 'device' | 'threat' | 'user' | 'security_event';
+  status: 'active' | 'inactive' | 'suspicious' | 'blocked';
   name?: string;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  eventType?: string;
 }
 
 interface LocationIntelligenceProps {
@@ -39,7 +43,7 @@ interface LocationIntelligenceProps {
   onLocationResolved?: (ip: string, location: GeoLocationData) => void;
 }
 
-export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
+export const LocationIntelligence: React.FC<LocationIntelligenceProps> = memo(({
   className,
   initialIPs = [],
   onLocationResolved,
@@ -49,6 +53,7 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
   const [trackedLocations, setTrackedLocations] = useState<TrackedLocation[]>([]);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(true);
 
   // Get user's current location on mount
   useEffect(() => {
@@ -65,6 +70,145 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
       processIPs(initialIPs);
     }
   }, [initialIPs]);
+
+  // Real-time security events monitoring for threat locations
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    // Load existing security events with IPs
+    loadSecurityEventLocations();
+
+    // Subscribe to real-time security events
+    const channel = supabase
+      .channel('location-intelligence-events')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'security_events' 
+      }, async (payload) => {
+        const event = payload.new as any;
+        if (event.source_ip) {
+          await addThreatLocation(event);
+        }
+      })
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'threat_detections' 
+      }, async (payload) => {
+        const detection = payload.new as any;
+        if (detection.indicators?.source_ip) {
+          await addThreatFromDetection(detection);
+        }
+      })
+      .subscribe();
+
+    // Refresh threat locations every 30 seconds
+    const interval = setInterval(() => {
+      loadSecurityEventLocations();
+    }, 30000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [autoRefresh]);
+
+  const loadSecurityEventLocations = async () => {
+    try {
+      // Get recent security events with source IPs
+      const { data: events } = await supabase
+        .from('security_events')
+        .select('*')
+        .not('source_ip', 'is', null)
+        .order('detected_at', { ascending: false })
+        .limit(50);
+
+      if (events && events.length > 0) {
+        const ipsToLookup = events
+          .map(e => e.source_ip)
+          .filter((ip): ip is string => ip !== null);
+
+        if (ipsToLookup.length > 0) {
+          const uniqueIPs = [...new Set(ipsToLookup)];
+          const results = await lookupMultipleIPs(uniqueIPs);
+
+          const threatLocations: TrackedLocation[] = [];
+          events.forEach(event => {
+            if (event.source_ip) {
+              const result = results.get(event.source_ip);
+              if (result?.success && result.data) {
+                threatLocations.push({
+                  ip: event.source_ip,
+                  location: result.data,
+                  timestamp: event.detected_at || new Date().toISOString(),
+                  type: 'security_event',
+                  status: event.severity === 'critical' ? 'blocked' : 
+                         event.severity === 'high' ? 'suspicious' : 'active',
+                  name: event.event_type,
+                  severity: event.severity,
+                  eventType: event.event_type,
+                });
+              }
+            }
+          });
+
+          setTrackedLocations(prev => {
+            // Merge with existing, removing duplicates by IP + timestamp combo
+            const existingKeys = new Set(threatLocations.map(l => `${l.ip}-${l.timestamp}`));
+            const filtered = prev.filter(l => !existingKeys.has(`${l.ip}-${l.timestamp}`) && l.type !== 'security_event');
+            return [...threatLocations, ...filtered];
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load security event locations:', error);
+    }
+  };
+
+  const addThreatLocation = async (event: any) => {
+    const result = await lookupIP(event.source_ip);
+    if (result.success && result.data) {
+      const newLocation: TrackedLocation = {
+        ip: event.source_ip,
+        location: result.data,
+        timestamp: event.detected_at || new Date().toISOString(),
+        type: 'threat',
+        status: event.severity === 'critical' ? 'blocked' : 'suspicious',
+        name: `Threat: ${event.event_type}`,
+        severity: event.severity,
+        eventType: event.event_type,
+      };
+
+      setTrackedLocations(prev => [newLocation, ...prev.slice(0, 49)]);
+      onLocationResolved?.(event.source_ip, result.data);
+      
+      toast.warning(`Threat detected from ${result.data.city}, ${result.data.country}`, {
+        description: `${event.event_type} - ${event.severity} severity`,
+      });
+    }
+  };
+
+  const addThreatFromDetection = async (detection: any) => {
+    const ip = detection.indicators?.source_ip;
+    if (!ip) return;
+
+    const result = await lookupIP(ip);
+    if (result.success && result.data) {
+      const newLocation: TrackedLocation = {
+        ip,
+        location: result.data,
+        timestamp: detection.detected_at || new Date().toISOString(),
+        type: 'threat',
+        status: detection.severity === 'critical' ? 'blocked' : 'suspicious',
+        name: `Detection: ${detection.threat_type}`,
+        severity: detection.severity,
+        eventType: detection.threat_type,
+      };
+
+      setTrackedLocations(prev => [newLocation, ...prev.slice(0, 49)]);
+    }
+  };
 
   const processIPs = async (ips: string[]) => {
     setIsScanning(true);
@@ -90,7 +234,9 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
         return [...prev, ...newLocations.filter(l => !existing.has(l.ip))];
       });
 
-      toast.success(`Resolved ${newLocations.length} locations`);
+      if (newLocations.length > 0) {
+        toast.success(`Resolved ${newLocations.length} locations`);
+      }
     } catch (error) {
       console.error('Failed to process IPs:', error);
     } finally {
@@ -114,13 +260,13 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
         if (existing) {
           return prev.map(l => l.ip === searchIP ? { ...l, location: result.data!, timestamp: new Date().toISOString() } : l);
         }
-        return [...prev, {
+        return [{
           ip: searchIP,
           location: result.data!,
           timestamp: new Date().toISOString(),
           type: 'device' as const,
           status: 'active' as const,
-        }];
+        }, ...prev];
       });
       onLocationResolved?.(searchIP, result.data);
       toast.success(`Location resolved: ${result.data.city}, ${result.data.country}`);
@@ -145,16 +291,31 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
     const styles: Record<string, string> = {
       active: 'bg-success/20 text-success border-success/30',
       inactive: 'bg-muted text-muted-foreground border-border',
-      suspicious: 'bg-destructive/20 text-destructive border-destructive/30',
+      suspicious: 'bg-warning/20 text-warning border-warning/30',
+      blocked: 'bg-destructive/20 text-destructive border-destructive/30',
     };
     return styles[status] || styles.inactive;
   };
 
-  const getTypeIcon = (type: string) => {
+  const getSeverityColor = (severity?: string) => {
+    const colors: Record<string, string> = {
+      critical: 'text-destructive',
+      high: 'text-warning',
+      medium: 'text-primary',
+      low: 'text-success',
+    };
+    return colors[severity || 'low'] || 'text-muted-foreground';
+  };
+
+  const getTypeIcon = (type: string, status: string) => {
+    if (type === 'threat' || type === 'security_event') {
+      return status === 'blocked' ? 
+        <Shield className="h-4 w-4 text-destructive" /> : 
+        <AlertTriangle className="h-4 w-4 text-warning animate-pulse" />;
+    }
     const icons: Record<string, React.ReactNode> = {
       network: <Wifi className="h-4 w-4" />,
       device: <Signal className="h-4 w-4" />,
-      threat: <AlertTriangle className="h-4 w-4" />,
       user: <Target className="h-4 w-4" />,
     };
     return icons[type] || icons.device;
@@ -169,83 +330,22 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
     return String.fromCodePoint(...codePoints);
   };
 
-  // Demo locations for showcase
-  const demoLocations: TrackedLocation[] = [
-    {
-      ip: '192.168.1.1',
-      location: {
-        ip: '192.168.1.1',
-        country: 'United States',
-        countryCode: 'US',
-        region: 'NY',
-        regionName: 'New York',
-        city: 'New York',
-        zip: '10001',
-        latitude: 40.7128,
-        longitude: -74.0060,
-        timezone: 'America/New_York',
-        isp: 'Verizon Business',
-        organization: 'Corporate HQ',
-        as: '',
-        query: '192.168.1.1',
-        status: 'success',
-      },
-      timestamp: new Date().toISOString(),
-      type: 'network',
-      status: 'active',
-      name: 'Corporate HQ Gateway',
-    },
-    {
-      ip: '10.0.0.15',
-      location: {
-        ip: '10.0.0.15',
-        country: 'United Kingdom',
-        countryCode: 'GB',
-        region: 'ENG',
-        regionName: 'England',
-        city: 'London',
-        zip: 'EC1A',
-        latitude: 51.5074,
-        longitude: -0.1278,
-        timezone: 'Europe/London',
-        isp: 'British Telecom',
-        organization: 'London Office',
-        as: '',
-        query: '10.0.0.15',
-        status: 'success',
-      },
-      timestamp: new Date(Date.now() - 300000).toISOString(),
-      type: 'device',
-      status: 'active',
-      name: 'London Data Center',
-    },
-    {
-      ip: '185.220.101.34',
-      location: {
-        ip: '185.220.101.34',
-        country: 'Russia',
-        countryCode: 'RU',
-        region: 'MOW',
-        regionName: 'Moscow',
-        city: 'Moscow',
-        zip: '101000',
-        latitude: 55.7558,
-        longitude: 37.6173,
-        timezone: 'Europe/Moscow',
-        isp: 'Unknown ISP',
-        organization: 'Unknown',
-        as: '',
-        query: '185.220.101.34',
-        status: 'success',
-      },
-      timestamp: new Date(Date.now() - 600000).toISOString(),
-      type: 'threat',
-      status: 'suspicious',
-      name: 'Suspicious Source',
-    },
-  ];
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+    return date.toLocaleDateString();
+  };
 
-  const allLocations = [...demoLocations, ...trackedLocations];
+  // Stats
+  const threatCount = trackedLocations.filter(l => l.type === 'threat' || l.type === 'security_event').length;
+  const suspiciousCount = trackedLocations.filter(l => l.status === 'suspicious' || l.status === 'blocked').length;
+  const countriesCount = new Set(trackedLocations.map(l => l.location.country)).size;
 
   return (
     <Card className={cn("cyber-card", className)}>
@@ -256,18 +356,23 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
             <div>
               <CardTitle className="text-sm sm:text-base">Location Intelligence</CardTitle>
               <CardDescription className="text-xs">
-                Geolocation tracking and IP intelligence
+                Real-time geolocation tracking & threat origins
               </CardDescription>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={autoRefresh ? "default" : "outline"}
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className="h-7 text-xs"
+            >
+              <Radio className={cn("h-3 w-3 mr-1", autoRefresh && "animate-pulse")} />
+              {autoRefresh ? 'Live' : 'Paused'}
+            </Button>
             <Badge variant="outline" className="text-xs">
               <MapPin className="h-3 w-3 mr-1" />
-              {allLocations.length} Tracked
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              <Target className="h-3 w-3 mr-1" />
-              {cacheSize} Cached
+              {trackedLocations.length}
             </Badge>
           </div>
         </div>
@@ -299,55 +404,64 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
         {/* Stats */}
         <div className="grid grid-cols-4 gap-2">
           <div className="p-2 rounded-lg bg-primary/10 border border-primary/20 text-center">
-            <p className="text-lg font-bold text-primary">
-              {new Set(allLocations.map(l => l.location.country)).size}
-            </p>
+            <p className="text-lg font-bold text-primary">{countriesCount}</p>
             <p className="text-[9px] text-muted-foreground">Countries</p>
           </div>
-          <div className="p-2 rounded-lg bg-success/10 border border-success/20 text-center">
-            <p className="text-lg font-bold text-success">
-              {allLocations.filter(l => l.status === 'active').length}
-            </p>
-            <p className="text-[9px] text-muted-foreground">Active</p>
-          </div>
           <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20 text-center">
-            <p className="text-lg font-bold text-destructive">
-              {allLocations.filter(l => l.status === 'suspicious').length}
-            </p>
+            <p className="text-lg font-bold text-destructive">{threatCount}</p>
+            <p className="text-[9px] text-muted-foreground">Threats</p>
+          </div>
+          <div className="p-2 rounded-lg bg-warning/10 border border-warning/20 text-center">
+            <p className="text-lg font-bold text-warning">{suspiciousCount}</p>
             <p className="text-[9px] text-muted-foreground">Suspicious</p>
           </div>
           <div className="p-2 rounded-lg bg-info/10 border border-info/20 text-center">
-            <p className="text-lg font-bold text-info">
-              {allLocations.filter(l => l.type === 'threat').length}
-            </p>
-            <p className="text-[9px] text-muted-foreground">Threats</p>
+            <p className="text-lg font-bold text-info">{cacheSize}</p>
+            <p className="text-[9px] text-muted-foreground">Cached</p>
           </div>
         </div>
 
         {/* Location List */}
-        <ScrollArea className="h-[280px]">
+        <ScrollArea className="h-[320px]">
           <div className="space-y-2 pr-2">
-            {allLocations.map((tracked, idx) => {
+            {trackedLocations.map((tracked, idx) => {
               const distance = getDistanceFromUser(tracked.location.latitude, tracked.location.longitude);
+              const isThreat = tracked.type === 'threat' || tracked.type === 'security_event';
+              
               return (
                 <div
                   key={`${tracked.ip}-${idx}`}
-                  className="p-3 rounded-lg bg-secondary/30 border border-border hover:border-primary/30 transition-all"
+                  className={cn(
+                    "p-3 rounded-lg border transition-all",
+                    isThreat 
+                      ? "bg-destructive/5 border-destructive/30 hover:border-destructive/50" 
+                      : "bg-secondary/30 border-border hover:border-primary/30"
+                  )}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{getFlagEmoji(tracked.location.countryCode)}</span>
                       <div>
-                        <p className="text-sm font-medium">{tracked.name || tracked.ip}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">{tracked.name || tracked.ip}</p>
+                          {tracked.severity && (
+                            <Badge variant="outline" className={cn("text-[9px] uppercase", getSeverityColor(tracked.severity))}>
+                              {tracked.severity}
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground font-mono">{tracked.ip}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className={getStatusBadge(tracked.status)}>
+                      <Badge className={cn("text-[10px]", getStatusBadge(tracked.status))}>
                         {tracked.status}
                       </Badge>
-                      <div className="p-1.5 rounded bg-secondary/50">
-                        {getTypeIcon(tracked.type)}
+                      <div className={cn(
+                        "p-1.5 rounded",
+                        isThreat ? "bg-destructive/20" : "bg-secondary/50"
+                      )}>
+                        {getTypeIcon(tracked.type, tracked.status)}
                       </div>
                     </div>
                   </div>
@@ -369,25 +483,33 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3 text-muted-foreground" />
-                      <span>{tracked.location.timezone}</span>
+                      <span>{formatTimestamp(tracked.timestamp)}</span>
                     </div>
                   </div>
 
-                  {distance && (
-                    <div className="mt-2 flex items-center gap-1 text-xs text-primary">
-                      <Navigation className="h-3 w-3" />
-                      <span>{distance}</span>
-                    </div>
-                  )}
+                  <div className="mt-2 flex items-center justify-between text-xs">
+                    {distance && (
+                      <div className="flex items-center gap-1 text-primary">
+                        <Navigation className="h-3 w-3" />
+                        <span>{distance}</span>
+                      </div>
+                    )}
+                    {tracked.eventType && (
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Crosshair className="h-3 w-3" />
+                        <span>{tracked.eventType}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
 
-            {allLocations.length === 0 && (
+            {trackedLocations.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">
                 <Globe className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-sm">No locations tracked</p>
-                <p className="text-xs">Enter an IP address to start tracking</p>
+                <p className="text-xs">Security events will appear here automatically</p>
               </div>
             )}
           </div>
@@ -395,4 +517,6 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = ({
       </CardContent>
     </Card>
   );
-};
+});
+
+LocationIntelligence.displayName = 'LocationIntelligence';
