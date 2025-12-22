@@ -83,6 +83,8 @@ import { SecurityReportExporter } from "@/components/SecurityReportExporter";
 import { GlobalNetworkRegistry } from "@/components/GlobalNetworkRegistry";
 import { AdvancedNetworkScanner } from "@/components/AdvancedNetworkScanner";
 import { useRegisteredNetworks } from "@/hooks/useRegisteredNetworks";
+import { LocationIntelligence } from "@/components/LocationIntelligence";
+import { ThreatRemediationEngine } from "@/components/ThreatRemediationEngine";
 
 interface NetworkDevice {
   id: string;
@@ -199,16 +201,17 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
     localStorage.setItem('enterprise-network-devices', JSON.stringify(devices));
   }, [devices]);
 
-  // Load network data and monitor devices
+  // Load network data and monitor devices - optimized polling interval
   useEffect(() => {
     loadNetworkData();
     
+    // Use longer interval for better performance (5 seconds instead of 3)
     const interval = setInterval(() => {
       if (monitoringActive) {
         loadNetworkData();
         updateDeviceMetrics();
       }
-    }, 3000);
+    }, 5000);
     
     // Subscribe to security events for real-time updates
     const channel = supabase
@@ -738,6 +741,8 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
               <TabsTrigger value="reports" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Reports</TabsTrigger>
               <TabsTrigger value="registry" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Registry</TabsTrigger>
               <TabsTrigger value="scanner" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Scanner</TabsTrigger>
+              <TabsTrigger value="location" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Location</TabsTrigger>
+              <TabsTrigger value="remediation" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Remediation</TabsTrigger>
               <TabsTrigger value="metrics" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Metrics</TabsTrigger>
             </TabsList>
           </div>
@@ -1171,6 +1176,28 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
           {/* Advanced Network Scanner Tab */}
           <TabsContent value="scanner" className="space-y-4">
             <AdvancedNetworkScanner registeredNetworksOnly={true} />
+          </TabsContent>
+
+          {/* Location Intelligence Tab */}
+          <TabsContent value="location" className="space-y-4">
+            <LocationIntelligence 
+              initialIPs={devices.map(d => d.ipAddress)}
+              onLocationResolved={(ip, location) => {
+                console.log(`Location resolved for ${ip}:`, location);
+              }}
+            />
+          </TabsContent>
+
+          {/* Threat Remediation Tab */}
+          <TabsContent value="remediation" className="space-y-4">
+            <ThreatRemediationEngine 
+              onRemediationComplete={(result) => {
+                toast({
+                  title: "Remediation Complete",
+                  description: result.details,
+                });
+              }}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -330,6 +330,22 @@ export const ThreatRemediationEngine: React.FC<ThreatRemediationEngineProps> = (
         }
       });
 
+      // Send email notification for threat resolution
+      await supabase.functions.invoke('network-security-notifications', {
+        body: {
+          type: 'resolved',
+          threat: {
+            type: threat.type,
+            severity: threat.severity,
+            deviceName: threat.deviceName,
+            deviceIp: threat.deviceIp,
+            networkName: threat.networkName,
+            description: threat.description,
+            remediationSteps: steps,
+          }
+        }
+      });
+
       const result: RemediationResult = {
         success: true,
         action: action.name,

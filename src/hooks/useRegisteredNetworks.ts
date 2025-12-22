@@ -89,8 +89,24 @@ export const useRegisteredNetworks = () => {
         action_performed: `Registered network: ${newNetwork.name}`,
         metadata: { network_id: newNetwork.id, sector: newNetwork.sector }
       });
+
+      // Trigger email notification for network registration
+      await supabase.functions.invoke('network-security-notifications', {
+        body: {
+          type: 'registration',
+          network: {
+            name: newNetwork.name,
+            sector: newNetwork.sector,
+            networkRange: newNetwork.networkRange,
+            gateway: newNetwork.gateway,
+            securityLevel: newNetwork.metadata.securityLevel,
+            location: newNetwork.metadata.location,
+          },
+          recipientEmail: newNetwork.metadata.contactEmail,
+        }
+      });
     } catch (err) {
-      console.error('Failed to log network registration:', err);
+      console.error('Failed to process network registration:', err);
     }
 
     return newNetwork;
