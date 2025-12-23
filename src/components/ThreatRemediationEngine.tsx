@@ -331,20 +331,31 @@ export const ThreatRemediationEngine: React.FC<ThreatRemediationEngineProps> = (
       });
 
       // Send email notification for threat resolution
-      await supabase.functions.invoke('network-security-notifications', {
-        body: {
-          type: 'resolved',
-          threat: {
-            type: threat.type,
-            severity: threat.severity,
-            deviceName: threat.deviceName,
-            deviceIp: threat.deviceIp,
-            networkName: threat.networkName,
-            description: threat.description,
-            remediationSteps: steps,
-          }
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const recipientEmail = user?.email || '';
+        
+        if (recipientEmail) {
+          await supabase.functions.invoke('network-security-notifications', {
+            body: {
+              type: 'resolved',
+              recipientEmail,
+              threat: {
+                type: threat.type,
+                severity: threat.severity,
+                deviceName: threat.deviceName,
+                deviceIp: threat.deviceIp,
+                networkName: threat.networkName,
+                description: threat.description,
+                remediationSteps: steps,
+              }
+            }
+          });
+          console.log('Remediation notification sent to:', recipientEmail);
         }
-      });
+      } catch (notifError) {
+        console.error('Failed to send remediation notification:', notifError);
+      }
 
       const result: RemediationResult = {
         success: true,

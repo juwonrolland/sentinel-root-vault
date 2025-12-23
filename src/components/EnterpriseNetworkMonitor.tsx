@@ -85,6 +85,7 @@ import { AdvancedNetworkScanner } from "@/components/AdvancedNetworkScanner";
 import { useRegisteredNetworks } from "@/hooks/useRegisteredNetworks";
 import { LocationIntelligence } from "@/components/LocationIntelligence";
 import { ThreatRemediationEngine } from "@/components/ThreatRemediationEngine";
+import { IdentityScanner } from "@/components/IdentityScanner";
 
 interface NetworkDevice {
   id: string;
@@ -743,6 +744,7 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
               <TabsTrigger value="scanner" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Scanner</TabsTrigger>
               <TabsTrigger value="location" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Location</TabsTrigger>
               <TabsTrigger value="remediation" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Remediation</TabsTrigger>
+              <TabsTrigger value="identity" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Identity</TabsTrigger>
               <TabsTrigger value="metrics" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Metrics</TabsTrigger>
             </TabsList>
           </div>
@@ -1196,6 +1198,21 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                   title: "Remediation Complete",
                   description: result.details,
                 });
+              }}
+            />
+          </TabsContent>
+
+          {/* Identity Scanner Tab */}
+          <TabsContent value="identity" className="space-y-4">
+            <IdentityScanner 
+              onIdentityDetected={(result) => {
+                if (result.status === 'flagged') {
+                  toast({
+                    title: "Security Alert",
+                    description: `Flagged individual detected - ${result.identityInfo?.riskLevel?.toUpperCase()} risk`,
+                    variant: "destructive",
+                  });
+                }
               }}
             />
           </TabsContent>
