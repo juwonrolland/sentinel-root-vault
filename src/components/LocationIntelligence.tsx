@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
   Globe,
   MapPin,
@@ -21,6 +23,10 @@ import {
   Shield,
   Crosshair,
   Radio,
+  Bell,
+  BellRing,
+  Volume2,
+  Mail,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useGeoLocation, GeoLocationData } from '@/hooks/useGeoLocation';
@@ -41,12 +47,14 @@ interface LocationIntelligenceProps {
   className?: string;
   initialIPs?: string[];
   onLocationResolved?: (ip: string, location: GeoLocationData) => void;
+  onThreatDetected?: (location: TrackedLocation) => void;
 }
 
 export const LocationIntelligence: React.FC<LocationIntelligenceProps> = memo(({
   className,
   initialIPs = [],
   onLocationResolved,
+  onThreatDetected,
 }) => {
   const { lookupIP, lookupMultipleIPs, getCurrentLocation, getDistanceBetweenPoints, isLoading, cacheSize } = useGeoLocation();
   const [searchIP, setSearchIP] = useState('');
@@ -54,6 +62,9 @@ export const LocationIntelligence: React.FC<LocationIntelligenceProps> = memo(({
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [enableNotifications, setEnableNotifications] = useState(true);
+  const [enableEmailAlerts, setEnableEmailAlerts] = useState(false);
+  const [soundAlerts, setSoundAlerts] = useState(true);
 
   // Get user's current location on mount
   useEffect(() => {

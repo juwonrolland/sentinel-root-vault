@@ -86,6 +86,8 @@ import { useRegisteredNetworks } from "@/hooks/useRegisteredNetworks";
 import { LocationIntelligence } from "@/components/LocationIntelligence";
 import { ThreatRemediationEngine } from "@/components/ThreatRemediationEngine";
 import { IdentityScanner } from "@/components/IdentityScanner";
+import { FaceComparison } from "@/components/FaceComparison";
+import { GlobalIdentityMap } from "@/components/GlobalIdentityMap";
 
 interface NetworkDevice {
   id: string;
@@ -745,6 +747,8 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
               <TabsTrigger value="location" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Location</TabsTrigger>
               <TabsTrigger value="remediation" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Remediation</TabsTrigger>
               <TabsTrigger value="identity" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Identity</TabsTrigger>
+              <TabsTrigger value="face-compare" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Compare</TabsTrigger>
+              <TabsTrigger value="global-map" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Global Map</TabsTrigger>
               <TabsTrigger value="metrics" className="text-[9px] sm:text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">Metrics</TabsTrigger>
             </TabsList>
           </div>
@@ -1210,6 +1214,35 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                   toast({
                     title: "Security Alert",
                     description: `Flagged individual detected - ${result.threatAssessment?.overallRisk?.toUpperCase()} threat`,
+                    variant: "destructive",
+                  });
+                }
+              }}
+            />
+          </TabsContent>
+
+          {/* Face Comparison Tab */}
+          <TabsContent value="face-compare" className="space-y-4">
+            <FaceComparison 
+              onComparisonComplete={(result) => {
+                if (result.verdict === 'same_person') {
+                  toast({
+                    title: "Match Confirmed",
+                    description: `${result.similarity.toFixed(1)}% similarity detected`,
+                  });
+                }
+              }}
+            />
+          </TabsContent>
+
+          {/* Global Identity Map Tab */}
+          <TabsContent value="global-map" className="space-y-4">
+            <GlobalIdentityMap 
+              onThreatSelected={(threat) => {
+                if (threat.severity === 'critical' || threat.severity === 'high') {
+                  toast({
+                    title: "Threat Selected",
+                    description: `${threat.name} from ${threat.city}, ${threat.country}`,
                     variant: "destructive",
                   });
                 }
