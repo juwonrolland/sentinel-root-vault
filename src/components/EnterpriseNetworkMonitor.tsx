@@ -1209,7 +1209,7 @@ export const EnterpriseNetworkMonitor = ({ className }: EnterpriseNetworkMonitor
                 if (result.status === 'flagged') {
                   toast({
                     title: "Security Alert",
-                    description: `Flagged individual detected - ${result.identityInfo?.riskLevel?.toUpperCase()} risk`,
+                    description: `Flagged individual detected - ${result.threatAssessment?.overallRisk?.toUpperCase()} threat`,
                     variant: "destructive",
                   });
                 }
