@@ -285,6 +285,22 @@ const Dashboard = () => {
       path: "/threat-investigation",
       color: "text-info",
       gradient: "from-info/20 to-primary/10"
+    },
+    {
+      title: "Global Intelligence",
+      description: "Real-time global IP/domain threat tracking",
+      icon: Globe,
+      path: "/global-tracking",
+      color: "text-purple-400",
+      gradient: "from-purple-500/20 to-primary/10"
+    },
+    {
+      title: "Hydra Network Defense",
+      description: "Distributed resilience & DDoS mitigation",
+      icon: Shield,
+      path: "/network-resilience",
+      color: "text-emerald-400",
+      gradient: "from-emerald-500/20 to-success/10"
     }
   ];
 
