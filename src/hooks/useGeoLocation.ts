@@ -13,7 +13,11 @@ export interface GeoLocationData {
   timezone: string;
   isp: string;
   organization: string;
+  org: string;
   as: string;
+  asn: string;
+  continent: string;
+  continentCode: string;
   query: string;
   status: string;
   message?: string;
@@ -75,7 +79,11 @@ export const useGeoLocation = () => {
         timezone: data.timezone || '',
         isp: data.isp || 'Unknown ISP',
         organization: data.org || '',
+        org: data.org || '',
         as: data.as || '',
+        asn: data.as || '',
+        continent: getContinentFromCountryCode(data.countryCode || 'XX'),
+        continentCode: getContinentCodeFromCountryCode(data.countryCode || 'XX'),
         query: data.query || ipAddress,
         status: 'success',
       };
@@ -189,17 +197,19 @@ function generateSimulatedLocation(ip: string): GeoLocationData {
   const hash = parts.reduce((a, b) => a + b, 0);
   
   const locations = [
-    { city: 'New York', country: 'United States', countryCode: 'US', region: 'NY', lat: 40.7128, lon: -74.0060, timezone: 'America/New_York', isp: 'Verizon Business' },
-    { city: 'London', country: 'United Kingdom', countryCode: 'GB', region: 'ENG', lat: 51.5074, lon: -0.1278, timezone: 'Europe/London', isp: 'British Telecom' },
-    { city: 'Tokyo', country: 'Japan', countryCode: 'JP', region: '13', lat: 35.6762, lon: 139.6503, timezone: 'Asia/Tokyo', isp: 'NTT Communications' },
-    { city: 'Singapore', country: 'Singapore', countryCode: 'SG', region: '01', lat: 1.3521, lon: 103.8198, timezone: 'Asia/Singapore', isp: 'SingTel' },
-    { city: 'Frankfurt', country: 'Germany', countryCode: 'DE', region: 'HE', lat: 50.1109, lon: 8.6821, timezone: 'Europe/Berlin', isp: 'Deutsche Telekom' },
-    { city: 'Sydney', country: 'Australia', countryCode: 'AU', region: 'NSW', lat: -33.8688, lon: 151.2093, timezone: 'Australia/Sydney', isp: 'Telstra' },
-    { city: 'São Paulo', country: 'Brazil', countryCode: 'BR', region: 'SP', lat: -23.5505, lon: -46.6333, timezone: 'America/Sao_Paulo', isp: 'Telefonica Brasil' },
-    { city: 'Mumbai', country: 'India', countryCode: 'IN', region: 'MH', lat: 19.0760, lon: 72.8777, timezone: 'Asia/Kolkata', isp: 'Reliance Jio' },
+    { city: 'New York', country: 'United States', countryCode: 'US', region: 'NY', lat: 40.7128, lon: -74.0060, timezone: 'America/New_York', isp: 'Verizon Business', continent: 'North America', continentCode: 'NA' },
+    { city: 'London', country: 'United Kingdom', countryCode: 'GB', region: 'ENG', lat: 51.5074, lon: -0.1278, timezone: 'Europe/London', isp: 'British Telecom', continent: 'Europe', continentCode: 'EU' },
+    { city: 'Tokyo', country: 'Japan', countryCode: 'JP', region: '13', lat: 35.6762, lon: 139.6503, timezone: 'Asia/Tokyo', isp: 'NTT Communications', continent: 'Asia', continentCode: 'AS' },
+    { city: 'Singapore', country: 'Singapore', countryCode: 'SG', region: '01', lat: 1.3521, lon: 103.8198, timezone: 'Asia/Singapore', isp: 'SingTel', continent: 'Asia', continentCode: 'AS' },
+    { city: 'Frankfurt', country: 'Germany', countryCode: 'DE', region: 'HE', lat: 50.1109, lon: 8.6821, timezone: 'Europe/Berlin', isp: 'Deutsche Telekom', continent: 'Europe', continentCode: 'EU' },
+    { city: 'Sydney', country: 'Australia', countryCode: 'AU', region: 'NSW', lat: -33.8688, lon: 151.2093, timezone: 'Australia/Sydney', isp: 'Telstra', continent: 'Oceania', continentCode: 'OC' },
+    { city: 'São Paulo', country: 'Brazil', countryCode: 'BR', region: 'SP', lat: -23.5505, lon: -46.6333, timezone: 'America/Sao_Paulo', isp: 'Telefonica Brasil', continent: 'South America', continentCode: 'SA' },
+    { city: 'Mumbai', country: 'India', countryCode: 'IN', region: 'MH', lat: 19.0760, lon: 72.8777, timezone: 'Asia/Kolkata', isp: 'Reliance Jio', continent: 'Asia', continentCode: 'AS' },
   ];
   
   const loc = locations[hash % locations.length];
+  const org = isPrivateIP(ip) ? 'Private Network' : 'Enterprise Network';
+  const asn = `AS${10000 + (hash % 50000)}`;
   
   return {
     ip,
@@ -213,9 +223,37 @@ function generateSimulatedLocation(ip: string): GeoLocationData {
     longitude: loc.lon + (Math.random() - 0.5) * 0.1,
     timezone: loc.timezone,
     isp: loc.isp,
-    organization: isPrivateIP(ip) ? 'Private Network' : 'Enterprise Network',
-    as: '',
+    organization: org,
+    org: org,
+    as: asn,
+    asn: asn,
+    continent: loc.continent,
+    continentCode: loc.continentCode,
     query: ip,
     status: 'success',
   };
+}
+
+function getContinentFromCountryCode(countryCode: string): string {
+  const continentMap: Record<string, string> = {
+    US: 'North America', CA: 'North America', MX: 'North America',
+    GB: 'Europe', DE: 'Europe', FR: 'Europe', IT: 'Europe', ES: 'Europe', NL: 'Europe', BE: 'Europe', CH: 'Europe', AT: 'Europe', PL: 'Europe', SE: 'Europe', NO: 'Europe', DK: 'Europe', FI: 'Europe', IE: 'Europe', PT: 'Europe', RU: 'Europe',
+    JP: 'Asia', CN: 'Asia', IN: 'Asia', KR: 'Asia', SG: 'Asia', HK: 'Asia', TW: 'Asia', TH: 'Asia', ID: 'Asia', MY: 'Asia', PH: 'Asia', VN: 'Asia', AE: 'Asia', SA: 'Asia', IL: 'Asia',
+    AU: 'Oceania', NZ: 'Oceania',
+    BR: 'South America', AR: 'South America', CL: 'South America', CO: 'South America', PE: 'South America',
+    ZA: 'Africa', NG: 'Africa', EG: 'Africa', KE: 'Africa', MA: 'Africa',
+  };
+  return continentMap[countryCode] || 'Unknown';
+}
+
+function getContinentCodeFromCountryCode(countryCode: string): string {
+  const continentCodeMap: Record<string, string> = {
+    US: 'NA', CA: 'NA', MX: 'NA',
+    GB: 'EU', DE: 'EU', FR: 'EU', IT: 'EU', ES: 'EU', NL: 'EU', BE: 'EU', CH: 'EU', AT: 'EU', PL: 'EU', SE: 'EU', NO: 'EU', DK: 'EU', FI: 'EU', IE: 'EU', PT: 'EU', RU: 'EU',
+    JP: 'AS', CN: 'AS', IN: 'AS', KR: 'AS', SG: 'AS', HK: 'AS', TW: 'AS', TH: 'AS', ID: 'AS', MY: 'AS', PH: 'AS', VN: 'AS', AE: 'AS', SA: 'AS', IL: 'AS',
+    AU: 'OC', NZ: 'OC',
+    BR: 'SA', AR: 'SA', CL: 'SA', CO: 'SA', PE: 'SA',
+    ZA: 'AF', NG: 'AF', EG: 'AF', KE: 'AF', MA: 'AF',
+  };
+  return continentCodeMap[countryCode] || 'XX';
 }
