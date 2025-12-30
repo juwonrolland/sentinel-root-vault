@@ -9,7 +9,7 @@ import { GlobalNodeMap } from '@/components/GlobalNodeMap';
 import { HydraSpawnAnimation } from '@/components/HydraSpawnAnimation';
 import { Globe3DMap } from '@/components/Globe3DMap';
 import { RoleBadge } from '@/components/RoleBasedAccess';
-import ThreatIntelligenceFeed from '@/components/ThreatIntelligenceFeed';
+import { ThreatIntelligenceFeed } from '@/components/ThreatIntelligenceFeed';
 import HydraAdminPanel from '@/components/HydraAdminPanel';
 
 const NetworkResilience = () => {
