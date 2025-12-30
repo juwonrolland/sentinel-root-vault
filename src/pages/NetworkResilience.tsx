@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Shield, Zap, Globe, Server, Activity } from 'lucide-react';
@@ -8,9 +9,16 @@ import { GlobalNodeMap } from '@/components/GlobalNodeMap';
 import { HydraSpawnAnimation } from '@/components/HydraSpawnAnimation';
 import { Globe3DMap } from '@/components/Globe3DMap';
 import { RoleBadge } from '@/components/RoleBasedAccess';
+import ThreatIntelligenceFeed from '@/components/ThreatIntelligenceFeed';
+import HydraAdminPanel from '@/components/HydraAdminPanel';
 
 const NetworkResilience = () => {
   const navigate = useNavigate();
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [nodeCount, setNodeCount] = useState(47);
+
+  const handleSpawnNode = () => setNodeCount((prev) => prev + 2);
+  const handleDestroyNode = () => setNodeCount((prev) => Math.max(1, prev - 1));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -39,7 +47,7 @@ const NetworkResilience = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-success/20 text-success border-success/30 animate-pulse">
+            <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30 animate-pulse">
               <Zap className="h-3 w-3 mr-1" />
               DEFENSE ACTIVE
             </Badge>
@@ -49,24 +57,24 @@ const NetworkResilience = () => {
 
         {/* Overview Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="p-4 rounded-lg cyber-card border border-primary/20 text-center">
+          <div className="p-4 rounded-lg bg-card/50 backdrop-blur-sm border border-primary/20 text-center">
             <Server className="h-8 w-8 text-primary mx-auto mb-2" />
-            <div className="text-3xl font-bold text-primary">47</div>
+            <div className="text-3xl font-bold text-primary">{nodeCount}</div>
             <div className="text-sm text-muted-foreground">Global Nodes</div>
           </div>
-          <div className="p-4 rounded-lg cyber-card border border-success/20 text-center">
-            <Globe className="h-8 w-8 text-success mx-auto mb-2" />
-            <div className="text-3xl font-bold text-success">12</div>
+          <div className="p-4 rounded-lg bg-card/50 backdrop-blur-sm border border-green-500/20 text-center">
+            <Globe className="h-8 w-8 text-green-500 mx-auto mb-2" />
+            <div className="text-3xl font-bold text-green-500">12</div>
             <div className="text-sm text-muted-foreground">Regions</div>
           </div>
-          <div className="p-4 rounded-lg cyber-card border border-accent/20 text-center">
-            <Activity className="h-8 w-8 text-accent mx-auto mb-2" />
-            <div className="text-3xl font-bold text-accent">99.99%</div>
+          <div className="p-4 rounded-lg bg-card/50 backdrop-blur-sm border border-blue-500/20 text-center">
+            <Activity className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+            <div className="text-3xl font-bold text-blue-500">99.99%</div>
             <div className="text-sm text-muted-foreground">Uptime</div>
           </div>
-          <div className="p-4 rounded-lg cyber-card border border-info/20 text-center">
-            <Shield className="h-8 w-8 text-info mx-auto mb-2" />
-            <div className="text-3xl font-bold text-info">100%</div>
+          <div className="p-4 rounded-lg bg-card/50 backdrop-blur-sm border border-cyan-500/20 text-center">
+            <Shield className="h-8 w-8 text-cyan-500 mx-auto mb-2" />
+            <div className="text-3xl font-bold text-cyan-500">100%</div>
             <div className="text-sm text-muted-foreground">Protected</div>
           </div>
         </div>
@@ -74,6 +82,17 @@ const NetworkResilience = () => {
         {/* 3D Globe Map */}
         <div className="mb-6">
           <Globe3DMap />
+        </div>
+
+        {/* Admin Panel & Threat Intelligence Feed */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <HydraAdminPanel
+            onSpawnNode={handleSpawnNode}
+            onDestroyNode={handleDestroyNode}
+            soundEnabled={soundEnabled}
+            onSoundSettingChange={setSoundEnabled}
+          />
+          <ThreatIntelligenceFeed maxItems={10} />
         </div>
 
         {/* Attack Simulation & Hydra Spawn Animation */}
@@ -92,7 +111,7 @@ const NetworkResilience = () => {
 
         {/* Security Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          <div className="p-6 rounded-lg cyber-card border border-primary/20">
+          <div className="p-6 rounded-lg bg-card/50 backdrop-blur-sm border border-primary/20">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 rounded-lg bg-primary/10">
                 <Globe className="h-6 w-6 text-primary" />
@@ -103,15 +122,14 @@ const NetworkResilience = () => {
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Infrastructure distributed across 12+ global regions. No single point of failure ensures 
-              continuous operation even under coordinated attacks.
+              Infrastructure distributed across 12+ global regions. No single point of failure.
             </p>
           </div>
 
-          <div className="p-6 rounded-lg cyber-card border border-accent/20">
+          <div className="p-6 rounded-lg bg-card/50 backdrop-blur-sm border border-orange-500/20">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-lg bg-accent/10">
-                <Shield className="h-6 w-6 text-accent" />
+              <div className="p-3 rounded-lg bg-orange-500/10">
+                <Shield className="h-6 w-6 text-orange-500" />
               </div>
               <div>
                 <h3 className="font-bold">DDoS Mitigation</h3>
@@ -119,15 +137,14 @@ const NetworkResilience = () => {
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              Advanced traffic analysis and automatic mitigation for TCP/UDP floods, 
-              SYN attacks, and application-layer threats.
+              Advanced traffic analysis and automatic mitigation for all attack types.
             </p>
           </div>
 
-          <div className="p-6 rounded-lg cyber-card border border-success/20">
+          <div className="p-6 rounded-lg bg-card/50 backdrop-blur-sm border border-green-500/20">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 rounded-lg bg-success/10">
-                <Zap className="h-6 w-6 text-success" />
+              <div className="p-3 rounded-lg bg-green-500/10">
+                <Zap className="h-6 w-6 text-green-500" />
               </div>
               <div>
                 <h3 className="font-bold">Auto-Spawn</h3>
@@ -135,8 +152,7 @@ const NetworkResilience = () => {
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              When a node goes down, two more automatically spawn. The network becomes 
-              stronger with every attack attempt.
+              When a node goes down, two more automatically spawn.
             </p>
           </div>
         </div>
