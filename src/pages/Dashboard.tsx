@@ -63,6 +63,7 @@ import { ThreatHeatmap } from "@/components/ThreatHeatmap";
 import { AlertEscalation } from "@/components/AlertEscalation";
 import { RoleBadge, AnalystOnly } from "@/components/RoleBasedAccess";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
+import { SecurityNotificationSystem } from "@/components/SecurityNotificationSystem";
 
 const Dashboard = () => {
   const { role, isAdmin, isAnalyst } = useRoleAccess();
@@ -344,6 +345,8 @@ const Dashboard = () => {
                   {currentTime.toLocaleTimeString('en-US', { hour12: false })}
                 </span>
               </div>
+
+              <SecurityNotificationSystem />
 
               <AlertSettingsPanel
                 preferences={preferences}
