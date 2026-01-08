@@ -6,17 +6,63 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation constants
+const MAX_CONTENT_LENGTH = 10000;
+const VALID_ANALYSIS_TYPES = ['comprehensive', 'quick', 'detailed'];
+
+// Sanitize string input to prevent injection
+function sanitizeString(input: string): string {
+  if (typeof input !== 'string') return '';
+  return input
+    .trim()
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+    .substring(0, MAX_CONTENT_LENGTH);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { content, analysisType = 'comprehensive' } = await req.json();
-
-    if (!content) {
-      throw new Error('Content is required');
+    // Parse and validate request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const { content, analysisType = 'comprehensive' } = requestBody;
+
+    // Validate content
+    if (!content || typeof content !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Content is required and must be a string' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (content.length > MAX_CONTENT_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: `Content exceeds maximum length of ${MAX_CONTENT_LENGTH} characters` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate analysisType
+    if (!VALID_ANALYSIS_TYPES.includes(analysisType)) {
+      return new Response(
+        JSON.stringify({ error: `Invalid analysisType. Must be one of: ${VALID_ANALYSIS_TYPES.join(', ')}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Sanitize content
+    const sanitizedContent = sanitizeString(content);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -122,7 +168,7 @@ For each content submission, perform exhaustive analysis and provide:
           },
           {
             role: 'user',
-            content: `Perform comprehensive forensic NLP security analysis on this content:\n\n${content}`
+            content: `Perform comprehensive forensic NLP security analysis on this content:\n\n${sanitizedContent}`
           }
         ]
       })
@@ -166,11 +212,11 @@ For each content submission, perform exhaustive analysis and provide:
       };
     }
 
-    // Store comprehensive forensic analysis
+    // Store comprehensive forensic analysis (use sanitized content)
     const { error: insertError } = await supabase
       .from('sentiment_analysis')
       .insert([{
-        content: content.substring(0, 1000),
+        content: sanitizedContent.substring(0, 1000),
         sentiment_score: sentimentData.sentiment_score,
         sentiment_label: sentimentData.sentiment_label,
         keywords: sentimentData.keywords,

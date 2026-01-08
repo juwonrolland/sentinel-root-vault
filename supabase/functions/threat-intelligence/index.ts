@@ -5,10 +5,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation constants
+const MAX_TARGET_LENGTH = 500;
+const MAX_CONTEXT_LENGTH = 10000;
+const VALID_TYPES = ['analyze', 'global_feed', 'ip_reputation', 'domain_check', 'vulnerability_scan'] as const;
+const IP_PATTERN = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+const DOMAIN_PATTERN = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+
 interface ThreatIntelRequest {
-  type: 'analyze' | 'global_feed' | 'ip_reputation' | 'domain_check' | 'vulnerability_scan';
+  type: typeof VALID_TYPES[number];
   target?: string;
   context?: string;
+}
+
+// Sanitize string input to prevent injection
+function sanitizeString(input: string, maxLength: number): string {
+  if (typeof input !== 'string') return '';
+  return input
+    .trim()
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+    .substring(0, maxLength);
 }
 
 serve(async (req) => {
@@ -17,7 +33,65 @@ serve(async (req) => {
   }
 
   try {
-    const { type, target, context } = await req.json() as ThreatIntelRequest;
+    // Parse and validate request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { type, target, context } = requestBody as ThreatIntelRequest;
+
+    // Validate type
+    if (!type || !VALID_TYPES.includes(type)) {
+      return new Response(
+        JSON.stringify({ error: `Invalid type. Must be one of: ${VALID_TYPES.join(', ')}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate target if provided
+    if (target && (typeof target !== 'string' || target.length > MAX_TARGET_LENGTH)) {
+      return new Response(
+        JSON.stringify({ error: `Target must be a string with max ${MAX_TARGET_LENGTH} characters` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate context if provided
+    if (context && (typeof context !== 'string' || context.length > MAX_CONTEXT_LENGTH)) {
+      return new Response(
+        JSON.stringify({ error: `Context must be a string with max ${MAX_CONTEXT_LENGTH} characters` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Additional validation based on type
+    if (type === 'ip_reputation' && target) {
+      if (!IP_PATTERN.test(target)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid IP address format' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    if (type === 'domain_check' && target) {
+      if (!DOMAIN_PATTERN.test(target)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid domain format' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Sanitize inputs
+    const sanitizedTarget = target ? sanitizeString(target, MAX_TARGET_LENGTH) : undefined;
+    const sanitizedContext = context ? sanitizeString(context, MAX_CONTEXT_LENGTH) : undefined;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -36,7 +110,7 @@ serve(async (req) => {
 - Recommended mitigations
 - MITRE ATT&CK framework mapping
 Respond in JSON format.`;
-        userPrompt = `Analyze this security data: ${context}`;
+        userPrompt = `Analyze this security data: ${sanitizedContext}`;
         break;
         
       case 'global_feed':
@@ -62,7 +136,7 @@ Provide 5-8 current threat items with severity, description, affected regions, a
 - Historical activity summary
 - Recommended action
 Respond in JSON format.`;
-        userPrompt = `Analyze IP reputation for: ${target}`;
+        userPrompt = `Analyze IP reputation for: ${sanitizedTarget}`;
         break;
         
       case 'domain_check':
@@ -76,7 +150,7 @@ Respond in JSON format.`;
 - Related domains
 - Recommended action
 Respond in JSON format.`;
-        userPrompt = `Analyze domain for threats: ${target}`;
+        userPrompt = `Analyze domain for threats: ${sanitizedTarget}`;
         break;
         
       case 'vulnerability_scan':
@@ -88,7 +162,7 @@ Respond in JSON format.`;
 - Remediation steps
 - Priority ranking
 Respond in JSON format with a "vulnerabilities" array.`;
-        userPrompt = `Generate vulnerability assessment for: ${context || 'general enterprise network'}`;
+        userPrompt = `Generate vulnerability assessment for: ${sanitizedContext || 'general enterprise network'}`;
         break;
         
       default:

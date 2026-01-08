@@ -6,17 +6,111 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation constants
+const MAX_NAME_LENGTH = 200;
+const MAX_URL_LENGTH = 2000;
+const MAX_URLS_COUNT = 100;
+const VALID_SCAN_DEPTHS = ['quick', 'standard', 'deep'];
+const URL_PATTERN = /^https?:\/\/[^\s<>\"{}|\\^`\[\]]+$/i;
+
+// Sanitize string input to prevent injection
+function sanitizeString(input: string, maxLength: number): string {
+  if (typeof input !== 'string') return '';
+  return input
+    .trim()
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+    .substring(0, maxLength);
+}
+
+// Validate URL format
+function isValidUrl(url: string): boolean {
+  if (typeof url !== 'string' || url.length > MAX_URL_LENGTH) return false;
+  return URL_PATTERN.test(url);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { productName, brandName, websiteUrls, scanDepth = 'standard' } = await req.json();
-
-    if (!productName && !brandName) {
-      throw new Error('Product name or brand name is required');
+    // Parse and validate request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const { productName, brandName, websiteUrls, scanDepth = 'standard' } = requestBody;
+
+    // Validate at least one name is provided
+    if (!productName && !brandName) {
+      return new Response(
+        JSON.stringify({ error: 'Product name or brand name is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate productName if provided
+    if (productName && (typeof productName !== 'string' || productName.length > MAX_NAME_LENGTH)) {
+      return new Response(
+        JSON.stringify({ error: `Product name must be a string with max ${MAX_NAME_LENGTH} characters` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate brandName if provided
+    if (brandName && (typeof brandName !== 'string' || brandName.length > MAX_NAME_LENGTH)) {
+      return new Response(
+        JSON.stringify({ error: `Brand name must be a string with max ${MAX_NAME_LENGTH} characters` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate scanDepth
+    if (!VALID_SCAN_DEPTHS.includes(scanDepth)) {
+      return new Response(
+        JSON.stringify({ error: `Invalid scanDepth. Must be one of: ${VALID_SCAN_DEPTHS.join(', ')}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate websiteUrls array
+    let validatedUrls: string[] = [];
+    if (websiteUrls) {
+      if (!Array.isArray(websiteUrls)) {
+        return new Response(
+          JSON.stringify({ error: 'websiteUrls must be an array' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (websiteUrls.length > MAX_URLS_COUNT) {
+        return new Response(
+          JSON.stringify({ error: `Maximum ${MAX_URLS_COUNT} URLs allowed per request` }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Validate and sanitize each URL
+      for (const url of websiteUrls) {
+        if (!isValidUrl(url)) {
+          return new Response(
+            JSON.stringify({ error: `Invalid URL format: ${String(url).substring(0, 100)}` }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        validatedUrls.push(sanitizeString(url, MAX_URL_LENGTH));
+      }
+    }
+
+    // Sanitize names
+    const sanitizedProductName = productName ? sanitizeString(productName, MAX_NAME_LENGTH) : null;
+    const sanitizedBrandName = brandName ? sanitizeString(brandName, MAX_NAME_LENGTH) : null;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -33,11 +127,11 @@ serve(async (req) => {
     }
 
     console.log('Initiating high-speed piracy detection scan...');
-    console.log(`Scan parameters: Product: ${productName}, Brand: ${brandName}, Depth: ${scanDepth}`);
+    console.log(`Scan parameters: Product: ${sanitizedProductName}, Brand: ${sanitizedBrandName}, Depth: ${scanDepth}`);
 
     // Simulate high-speed scanning capability (up to 1M websites/hour)
     const scanStartTime = Date.now();
-    const websitesToScan = websiteUrls || [];
+    const websitesToScan = validatedUrls;
     const scannedSites = Math.min(websitesToScan.length, 1000000 / 60); // Per minute calculation
 
     // AI-powered copyright violation detection
@@ -100,9 +194,9 @@ serve(async (req) => {
           {
             role: 'user',
             content: `Detect copyright and IP violations for:
-            Product: ${productName || 'N/A'}
-            Brand: ${brandName || 'N/A'}
-            Websites to scan: ${websitesToScan.length > 0 ? websitesToScan.join(', ') : 'Simulated mass scan'}
+            Product: ${sanitizedProductName || 'N/A'}
+            Brand: ${sanitizedBrandName || 'N/A'}
+            Websites to scan: ${websitesToScan.length > 0 ? websitesToScan.slice(0, 10).join(', ') + (websitesToScan.length > 10 ? '...' : '') : 'Simulated mass scan'}
             Scan Depth: ${scanDepth}
             
             Perform comprehensive violation detection analysis.`
@@ -171,10 +265,10 @@ serve(async (req) => {
         .insert([{
           event_type: 'Copyright/IP Violation Detected',
           severity: maxSeverity,
-          description: `Piracy Detection: ${piracyData.violation_count} violations detected for ${productName || brandName}. ${piracyData.scan_summary}`,
+          description: `Piracy Detection: ${piracyData.violation_count} violations detected for ${sanitizedProductName || sanitizedBrandName}. ${String(piracyData.scan_summary).substring(0, 500)}`,
           metadata: {
-            product: productName,
-            brand: brandName,
+            product: sanitizedProductName,
+            brand: sanitizedBrandName,
             violations: piracyData.violation_types,
             risk_assessment: piracyData.risk_assessment,
             recommendations: piracyData.enforcement_recommendations,
@@ -194,8 +288,8 @@ serve(async (req) => {
         resource: 'piracy-detection',
         success: true,
         metadata: {
-          product: productName,
-          brand: brandName,
+          product: sanitizedProductName,
+          brand: sanitizedBrandName,
           violations_detected: piracyData.violations_detected,
           scan_duration_ms: scanDuration,
           scan_rate_per_hour: Math.round(scanRate)
