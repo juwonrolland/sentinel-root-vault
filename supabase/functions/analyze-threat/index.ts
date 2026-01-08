@@ -6,17 +6,54 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation constants
+const MAX_LOG_DATA_LENGTH = 50000;
+
+// Sanitize string input to prevent injection
+function sanitizeString(input: string): string {
+  if (typeof input !== 'string') return '';
+  return input
+    .trim()
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+    .substring(0, MAX_LOG_DATA_LENGTH);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { logData } = await req.json();
-
-    if (!logData) {
-      throw new Error('Log data is required');
+    // Parse and validate request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const { logData } = requestBody;
+
+    // Validate logData
+    if (!logData || typeof logData !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Log data is required and must be a string' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (logData.length > MAX_LOG_DATA_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: `Log data exceeds maximum length of ${MAX_LOG_DATA_LENGTH} characters` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Sanitize logData
+    const sanitizedLogData = sanitizeString(logData);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -93,7 +130,7 @@ Respond in JSON format:
           },
           {
             role: 'user',
-            content: `Analyze this log data for security threats:\n\n${logData}`
+            content: `Analyze this log data for security threats:\n\n${sanitizedLogData}`
           }
         ]
       })
