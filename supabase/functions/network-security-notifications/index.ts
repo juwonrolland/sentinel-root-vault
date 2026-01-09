@@ -353,6 +353,32 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: authError } = await supabaseAuth.auth.getClaims(token);
+    
+    if (authError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const body = await req.json();
     
     // Handle both legacy format (type, recipients, data) and new format (type, network/threat, recipientEmail)
@@ -367,7 +393,7 @@ const handler = async (req: Request): Promise<Response> => {
       data = body.data;
     } else {
       // New format from frontend hooks
-      type = body.type === 'registration' ? 'network_registered' : 
+      type = body.type === 'registration' ? 'network_registered' :
              body.type === 'threat' ? 'threat_detected' :
              body.type === 'resolved' ? 'threat_resolved' : body.type;
       
