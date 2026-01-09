@@ -532,7 +532,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      active_sessions_safe: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string | null
+          ip_address: unknown
+          is_valid: boolean | null
+          last_activity: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          ip_address?: unknown
+          is_valid?: boolean | null
+          last_activity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          ip_address?: unknown
+          is_valid?: boolean | null
+          last_activity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_rate_limit: {
