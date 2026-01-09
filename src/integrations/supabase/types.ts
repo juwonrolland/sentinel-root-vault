@@ -576,6 +576,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_user_sessions: {
+        Args: { p_user_id: string }
+        Returns: {
+          created_at: string
+          expires_at: string
+          id: string
+          ip_address: unknown
+          is_valid: boolean
+          last_activity: string
+          user_agent: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
