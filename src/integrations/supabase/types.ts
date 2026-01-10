@@ -125,6 +125,39 @@ export type Database = {
         }
         Relationships: []
       }
+      anonymization_runs: {
+        Row: {
+          completed_at: string | null
+          error_message: string | null
+          id: string
+          records_processed: number | null
+          run_type: string
+          started_at: string
+          status: string
+          tables_affected: Json | null
+        }
+        Insert: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          records_processed?: number | null
+          run_type: string
+          started_at?: string
+          status?: string
+          tables_affected?: Json | null
+        }
+        Update: {
+          completed_at?: string | null
+          error_message?: string | null
+          id?: string
+          records_processed?: number | null
+          run_type?: string
+          started_at?: string
+          status?: string
+          tables_affected?: Json | null
+        }
+        Relationships: []
+      }
       api_rate_limits: {
         Row: {
           endpoint: string
@@ -230,6 +263,36 @@ export type Database = {
         }
         Relationships: []
       }
+      gdpr_export_requests: {
+        Row: {
+          completed_at: string | null
+          expires_at: string | null
+          export_data: Json | null
+          id: string
+          requested_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          expires_at?: string | null
+          export_data?: Json | null
+          id?: string
+          requested_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          expires_at?: string | null
+          export_data?: Json | null
+          id?: string
+          requested_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       incidents: {
         Row: {
           assigned_to: string | null
@@ -323,6 +386,42 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      role_change_audit: {
+        Row: {
+          changed_by: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          new_role: Database["public"]["Enums"]["app_role"]
+          old_role: Database["public"]["Enums"]["app_role"] | null
+          reason: string | null
+          target_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          new_role: Database["public"]["Enums"]["app_role"]
+          old_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
+          target_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          new_role?: Database["public"]["Enums"]["app_role"]
+          old_role?: Database["public"]["Enums"]["app_role"] | null
+          reason?: string | null
+          target_user_id?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -575,6 +674,7 @@ export type Database = {
     Functions: {
       anonymize_ip: { Args: { ip_address: unknown }; Returns: unknown }
       anonymize_old_ips: { Args: never; Returns: undefined }
+      anonymize_old_ips_with_logging: { Args: never; Returns: Json }
       check_rate_limit: {
         Args: {
           p_endpoint: string
@@ -584,6 +684,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      export_user_data: { Args: { p_user_id: string }; Returns: Json }
       get_all_sessions_admin: {
         Args: never
         Returns: {
