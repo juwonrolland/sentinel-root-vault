@@ -19,6 +19,7 @@ export type Database = {
           action: string
           id: string
           ip_address: string | null
+          ip_anonymized_at: string | null
           metadata: Json | null
           resource: string
           success: boolean | null
@@ -30,6 +31,7 @@ export type Database = {
           action: string
           id?: string
           ip_address?: string | null
+          ip_anonymized_at?: string | null
           metadata?: Json | null
           resource: string
           success?: boolean | null
@@ -41,6 +43,7 @@ export type Database = {
           action?: string
           id?: string
           ip_address?: string | null
+          ip_anonymized_at?: string | null
           metadata?: Json | null
           resource?: string
           success?: boolean | null
@@ -332,6 +335,7 @@ export type Database = {
           failure_reason: string | null
           id: string
           ip_address: unknown
+          ip_anonymized_at: string | null
           metadata: Json | null
           resource_accessed: string | null
           severity: string
@@ -347,6 +351,7 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           ip_address?: unknown
+          ip_anonymized_at?: string | null
           metadata?: Json | null
           resource_accessed?: string | null
           severity: string
@@ -362,6 +367,7 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           ip_address?: unknown
+          ip_anonymized_at?: string | null
           metadata?: Json | null
           resource_accessed?: string | null
           severity?: string
@@ -567,6 +573,8 @@ export type Database = {
       }
     }
     Functions: {
+      anonymize_ip: { Args: { ip_address: unknown }; Returns: unknown }
+      anonymize_old_ips: { Args: never; Returns: undefined }
       check_rate_limit: {
         Args: {
           p_endpoint: string
@@ -609,7 +617,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_session_token: { Args: { token: string }; Returns: string }
       invalidate_expired_sessions: { Args: never; Returns: undefined }
+      validate_session_token: {
+        Args: { p_token: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "analyst" | "viewer"
