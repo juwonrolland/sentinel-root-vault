@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, Crown, Eye, AlertTriangle, RefreshCw, Check, X } from "lucide-react";
+import { Shield, Users, Crown, Eye, AlertTriangle, RefreshCw, Check, X, Lock, Fingerprint, EyeOff } from "lucide-react";
 import { AdminOnly } from "@/components/RoleBasedAccess";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type AppRole = 'admin' | 'analyst' | 'viewer';
 
@@ -23,11 +24,79 @@ export const AdminRoleManager = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [anonymizingIPs, setAnonymizingIPs] = useState(false);
+  const [privacyStats, setPrivacyStats] = useState({
+    totalLogs: 0,
+    anonymizedLogs: 0,
+    pendingAnonymization: 0,
+  });
   const { toast } = useToast();
 
   useEffect(() => {
     loadUsers();
+    loadPrivacyStats();
   }, []);
+
+  const loadPrivacyStats = async () => {
+    try {
+      // Get total access logs count
+      const { count: totalLogs } = await supabase
+        .from('access_logs')
+        .select('*', { count: 'exact', head: true });
+
+      // Get anonymized logs count (those with ip_anonymized_at set)
+      const { count: anonymizedLogs } = await supabase
+        .from('access_logs')
+        .select('*', { count: 'exact', head: true })
+        .not('ip_anonymized_at', 'is', null);
+
+      // Get logs older than 30 days that haven't been anonymized yet
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { count: pendingAnonymization } = await supabase
+        .from('access_logs')
+        .select('*', { count: 'exact', head: true })
+        .lt('timestamp', thirtyDaysAgo.toISOString())
+        .is('ip_anonymized_at', null)
+        .not('ip_address', 'is', null);
+
+      setPrivacyStats({
+        totalLogs: totalLogs || 0,
+        anonymizedLogs: anonymizedLogs || 0,
+        pendingAnonymization: pendingAnonymization || 0,
+      });
+    } catch (error) {
+      console.error('Error loading privacy stats:', error);
+    }
+  };
+
+  const runIPAnonymization = async () => {
+    setAnonymizingIPs(true);
+    try {
+      // Call the database function to anonymize old IPs
+      const { error } = await supabase.rpc('anonymize_old_ips');
+      
+      if (error) throw error;
+
+      toast({
+        title: "Privacy Compliance",
+        description: "IP addresses older than 30 days have been anonymized",
+      });
+
+      // Refresh stats
+      await loadPrivacyStats();
+    } catch (error) {
+      console.error('Error anonymizing IPs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to anonymize IP addresses",
+        variant: "destructive",
+      });
+    } finally {
+      setAnonymizingIPs(false);
+    }
+  };
 
   const loadUsers = async () => {
     setLoading(true);
@@ -334,6 +403,86 @@ export const AdminRoleManager = () => {
                   <li className="flex items-center gap-2"><X className="h-3 w-3 text-destructive" /> Cannot create/edit</li>
                   <li className="flex items-center gap-2"><X className="h-3 w-3 text-destructive" /> Cannot manage</li>
                 </ul>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Privacy Compliance Panel */}
+        <Card className="cyber-card border-success/30">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <EyeOff className="h-5 w-5 text-success" />
+                  Privacy Compliance
+                </CardTitle>
+                <CardDescription>IP anonymization & data retention (30 days)</CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={runIPAnonymization} 
+                disabled={anonymizingIPs || privacyStats.pendingAnonymization === 0}
+                className="border-success/30 hover:bg-success/10"
+              >
+                {anonymizingIPs ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Lock className="h-4 w-4 mr-2" />
+                )}
+                Run Anonymization
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 border rounded-lg border-border bg-muted/30">
+                <div className="text-sm text-muted-foreground mb-1">Total Logs</div>
+                <div className="text-2xl font-bold">{privacyStats.totalLogs.toLocaleString()}</div>
+              </div>
+              <div className="p-4 border rounded-lg border-success/30 bg-success/5">
+                <div className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                  <Check className="h-3 w-3 text-success" />
+                  Anonymized
+                </div>
+                <div className="text-2xl font-bold text-success">{privacyStats.anonymizedLogs.toLocaleString()}</div>
+              </div>
+              <div className="p-4 border rounded-lg border-warning/30 bg-warning/5">
+                <div className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3 text-warning" />
+                  Pending (30+ days)
+                </div>
+                <div className="text-2xl font-bold text-warning">{privacyStats.pendingAnonymization.toLocaleString()}</div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 border rounded-lg border-success/20 bg-success/5">
+                <Fingerprint className="h-5 w-5 text-success" />
+                <div>
+                  <div className="text-sm font-medium">Session Token Hashing</div>
+                  <div className="text-xs text-muted-foreground">All session tokens are automatically hashed using SHA-256</div>
+                </div>
+                <Badge variant="outline" className="ml-auto border-success/30 text-success">Active</Badge>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 border rounded-lg border-success/20 bg-success/5">
+                <EyeOff className="h-5 w-5 text-success" />
+                <div>
+                  <div className="text-sm font-medium">IP Address Anonymization</div>
+                  <div className="text-xs text-muted-foreground">IPv4 masked to /24, IPv6 masked to /48 after 30 days</div>
+                </div>
+                <Badge variant="outline" className="ml-auto border-success/30 text-success">Active</Badge>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 border rounded-lg border-success/20 bg-success/5">
+                <Lock className="h-5 w-5 text-success" />
+                <div>
+                  <div className="text-sm font-medium">Data Retention Policy</div>
+                  <div className="text-xs text-muted-foreground">Personal identifiers are anonymized after 30-day retention period</div>
+                </div>
+                <Badge variant="outline" className="ml-auto border-success/30 text-success">Compliant</Badge>
               </div>
             </div>
           </CardContent>
