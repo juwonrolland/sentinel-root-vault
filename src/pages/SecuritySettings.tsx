@@ -1,5 +1,6 @@
 import { ProtectedPage } from "@/components/ProtectedPage";
 import { EnhancedAuthSecurity } from "@/components/EnhancedAuthSecurity";
+import { GDPRDataExport } from "@/components/GDPRDataExport";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -255,6 +256,11 @@ const SecuritySettings = () => {
 
           {/* Enhanced Auth Security */}
           <EnhancedAuthSecurity />
+
+          <Separator />
+
+          {/* GDPR Data Export */}
+          <GDPRDataExport />
         </div>
       </div>
     </ProtectedPage>

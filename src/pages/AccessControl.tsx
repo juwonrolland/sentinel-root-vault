@@ -8,6 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { RoleBadge, AdminOnly } from "@/components/RoleBasedAccess";
 import { AdminRoleManager } from "@/components/AdminRoleManager";
 import { AuditExport } from "@/components/AuditExport";
+import { RoleChangeAuditTrail } from "@/components/RoleChangeAuditTrail";
+
 const AccessControl = () => {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<any[]>([]);
@@ -68,6 +70,11 @@ const AccessControl = () => {
         {/* Admin Role Manager */}
         <div className="mb-8">
           <AdminRoleManager />
+        </div>
+
+        {/* Role Change Audit Trail */}
+        <div className="mb-8">
+          <RoleChangeAuditTrail />
         </div>
 
         {/* Audit Export */}

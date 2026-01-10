@@ -23,3 +23,9 @@ verify_jwt = false
 
 [functions.network-security-notifications]
 verify_jwt = false
+
+[functions.scheduled-anonymization]
+verify_jwt = false
+
+[functions.gdpr-export]
+verify_jwt = false

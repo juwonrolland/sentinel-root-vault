@@ -140,14 +140,20 @@ export const AdminRoleManager = () => {
   const updateUserRole = async (userId: string, newRole: AppRole) => {
     setUpdating(userId);
     try {
-      // Check if user already has a role
-      const { data: existingRole } = await supabase
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error('Not authenticated');
+
+      // Get existing role for audit trail
+      const { data: existingRoleData } = await supabase
         .from('user_roles')
-        .select('id')
+        .select('id, role')
         .eq('user_id', userId)
         .single();
 
-      if (existingRole) {
+      const oldRole = existingRoleData?.role as AppRole | null;
+
+      if (existingRoleData) {
         // Update existing role
         const { error } = await supabase
           .from('user_roles')
@@ -164,9 +170,19 @@ export const AdminRoleManager = () => {
         if (error) throw error;
       }
 
+      // Log role change in audit trail
+      await supabase
+        .from('role_change_audit')
+        .insert({
+          target_user_id: userId,
+          changed_by: currentUser.id,
+          old_role: oldRole,
+          new_role: newRole,
+        });
+
       toast({
         title: "Role Updated",
-        description: `User role changed to ${newRole}`,
+        description: `User role changed from ${oldRole || 'none'} to ${newRole}`,
       });
 
       setUsers(prev => prev.map(u => 
