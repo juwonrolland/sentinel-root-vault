@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,9 +6,9 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
 import { useOfflineMode } from '@/hooks/useOfflineMode';
-import { Maximize2, Minimize2, RotateCcw, X, Move, ZoomIn, MousePointer2, WifiOff } from 'lucide-react';
+import { Maximize2, Minimize2, RotateCcw, X, Move, ZoomIn, MousePointer2, WifiOff, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import { getMapboxToken } from '@/lib/mapbox';
 interface ThreatOrigin {
   id: string;
   lat: number;
@@ -75,11 +75,26 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
   const [showLegend, setShowLegend] = useState(true);
   const [showGestureHints, setShowGestureHints] = useState(false);
   const [isUsingCache, setIsUsingCache] = useState(false);
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const [tokenError, setTokenError] = useState(false);
   const isMobile = useIsMobile();
   const { lightTap, mediumTap, warning } = useHapticFeedback();
   const { isOnline, cacheData, getCachedData, getCacheAge } = useOfflineMode();
   const targetLocation = { lat: 37.7749, lng: -122.4194 };
   const CACHE_KEY = 'threat-map-data';
+
+  // Fetch Mapbox token on mount
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await getMapboxToken();
+      if (token) {
+        setMapboxToken(token);
+      } else {
+        setTokenError(true);
+      }
+    };
+    fetchToken();
+  }, []);
 
   // Check if user has seen hints before
   useEffect(() => {
@@ -325,15 +340,9 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
   };
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || !mapboxToken) return;
 
-    const token = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (!token) {
-      console.error('Mapbox token not found');
-      return;
-    }
-
-    mapboxgl.accessToken = token;
+    mapboxgl.accessToken = mapboxToken;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -423,8 +432,9 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
     return () => {
       markersRef.current.forEach(m => m.remove());
       map.current?.remove();
+      map.current = null;
     };
-  }, [isMobile]);
+  }, [isMobile, mapboxToken]);
 
   useEffect(() => {
     if (!isLoaded || !map.current) return;
@@ -443,6 +453,22 @@ export const GlobalThreatMap = ({ className, height = "400px" }: GlobalThreatMap
 
   const mapContent = (
     <>
+      {/* Token Error State */}
+      {tokenError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/95 z-50">
+          <div className="text-center p-6 max-w-sm">
+            <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-4" />
+            <h3 className="text-lg font-bold text-foreground mb-2">Map Unavailable</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              The map cannot be displayed because the Mapbox token is not configured.
+            </p>
+            <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div ref={mapContainer} className="absolute inset-0" />
       
       {/* Overlay gradient */}

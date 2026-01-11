@@ -20,10 +20,12 @@ import {
   Users,
   Activity,
   Crosshair,
+  Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getMapboxToken } from '@/lib/mapbox';
 
 interface MapThreat {
   id: string;
@@ -60,6 +62,22 @@ export const GlobalIdentityMap: React.FC<GlobalIdentityMapProps> = ({
   const [liveTracking, setLiveTracking] = useState(true);
   const [showConnections, setShowConnections] = useState(true);
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite'>('dark');
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const [tokenError, setTokenError] = useState(false);
+
+  // Fetch Mapbox token on mount
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await getMapboxToken();
+      if (token) {
+        setMapboxToken(token);
+      } else {
+        setTokenError(true);
+        setIsLoading(false);
+      }
+    };
+    fetchToken();
+  }, []);
 
   // Generate simulated global threats
   const generateGlobalThreats = useCallback((): MapThreat[] => {
@@ -121,16 +139,9 @@ export const GlobalIdentityMap: React.FC<GlobalIdentityMapProps> = ({
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    if (!mapContainer.current || map.current || !mapboxToken) return;
 
-    const token = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (!token) {
-      toast.error('Mapbox token not configured');
-      setIsLoading(false);
-      return;
-    }
-
-    mapboxgl.accessToken = token;
+    mapboxgl.accessToken = mapboxToken;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -159,7 +170,7 @@ export const GlobalIdentityMap: React.FC<GlobalIdentityMapProps> = ({
       map.current?.remove();
       map.current = null;
     };
-  }, []);
+  }, [mapboxToken, mapStyle]);
 
   // Auto-rotate globe
   useEffect(() => {
@@ -412,10 +423,25 @@ export const GlobalIdentityMap: React.FC<GlobalIdentityMapProps> = ({
         <Card className="cyber-card lg:col-span-3">
           <CardContent className="p-0">
             <div className="relative h-[500px] rounded-lg overflow-hidden">
-              {isLoading && (
+              {/* Token Error State */}
+              {tokenError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/95 z-20">
+                  <div className="text-center p-6 max-w-sm">
+                    <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-4" />
+                    <h3 className="text-lg font-bold text-foreground mb-2">Map Unavailable</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      The map cannot be displayed because the Mapbox token is not configured.
+                    </p>
+                    <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                      Retry
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {isLoading && !tokenError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
                   <div className="flex flex-col items-center gap-2">
-                    <Globe className="h-8 w-8 animate-spin text-primary" />
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground">Loading global map...</p>
                   </div>
                 </div>

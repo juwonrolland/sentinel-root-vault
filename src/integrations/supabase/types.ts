@@ -684,6 +684,29 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_rate_limit_advanced: {
+        Args: {
+          p_action?: string
+          p_endpoint: string
+          p_max_requests?: number
+          p_user_id: string
+          p_window_seconds?: number
+        }
+        Returns: Json
+      }
+      correlate_security_events: {
+        Args: { p_min_events?: number; p_time_window_minutes?: number }
+        Returns: {
+          event_count: number
+          event_types: string[]
+          first_event: string
+          is_attack: boolean
+          last_event: string
+          severity_max: string
+          source_ip: string
+        }[]
+      }
+      delete_user_data: { Args: { p_user_id: string }; Returns: Json }
       export_user_data: { Args: { p_user_id: string }; Returns: Json }
       get_all_sessions_admin: {
         Args: never
@@ -698,6 +721,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_ip_reputation: { Args: { p_ip: string }; Returns: Json }
       get_user_sessions: {
         Args: { p_user_id: string }
         Returns: {

@@ -3,7 +3,9 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Globe, Activity, Shield, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Globe, Activity, Shield, Zap, AlertTriangle, Loader2 } from 'lucide-react';
+import { getMapboxToken } from '@/lib/mapbox';
 
 interface NodeLocation {
   id: string;
@@ -44,17 +46,28 @@ export const Globe3DMap: React.FC = () => {
     activeConnections: 2339,
     attacksBlocked: 0
   });
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const [tokenError, setTokenError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch Mapbox token on mount
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await getMapboxToken();
+      if (token) {
+        setMapboxToken(token);
+      } else {
+        setTokenError(true);
+        setIsLoading(false);
+      }
+    };
+    fetchToken();
+  }, []);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || !mapboxToken) return;
 
-    const token = import.meta.env.VITE_MAPBOX_TOKEN;
-    if (!token) {
-      console.error('Mapbox token not found');
-      return;
-    }
-
-    mapboxgl.accessToken = token;
+    mapboxgl.accessToken = mapboxToken;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -73,6 +86,7 @@ export const Globe3DMap: React.FC = () => {
     map.current.scrollZoom.disable();
 
     map.current.on('style.load', () => {
+      setIsLoading(false);
       map.current?.setFog({
         color: 'rgb(10, 15, 30)',
         'high-color': 'rgb(20, 30, 60)',
@@ -114,8 +128,9 @@ export const Globe3DMap: React.FC = () => {
     return () => {
       markersRef.current.forEach(m => m.remove());
       map.current?.remove();
+      map.current = null;
     };
-  }, []);
+  }, [mapboxToken]);
 
   // Add/update markers when nodes change
   useEffect(() => {
@@ -211,6 +226,32 @@ export const Globe3DMap: React.FC = () => {
       <CardContent className="p-0">
         {/* Map Container */}
         <div className="relative w-full h-[500px]">
+          {/* Token Error State */}
+          {tokenError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/95 z-20">
+              <div className="text-center p-6 max-w-sm">
+                <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-foreground mb-2">Map Unavailable</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  The 3D globe cannot be displayed because the Mapbox token is not configured.
+                </p>
+                <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                  Retry
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isLoading && !tokenError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading 3D globe...</p>
+              </div>
+            </div>
+          )}
+
           <div ref={mapContainer} className="absolute inset-0" />
           
           {/* Stats Overlay */}
