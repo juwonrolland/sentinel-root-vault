@@ -1,5 +1,3 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -12,10 +10,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Get the Mapbox token from environment
-    const mapboxToken = Deno.env.get('VITE_MAPBOX_TOKEN');
+    // Get the Mapbox token from environment - try multiple possible names
+    const mapboxToken = Deno.env.get('MAPBOX_TOKEN') || 
+                        Deno.env.get('VITE_MAPBOX_TOKEN') || 
+                        Deno.env.get('MAPBOX_ACCESS_TOKEN');
+    
+    console.log('Checking for Mapbox token...');
+    console.log('MAPBOX_TOKEN exists:', !!Deno.env.get('MAPBOX_TOKEN'));
+    console.log('VITE_MAPBOX_TOKEN exists:', !!Deno.env.get('VITE_MAPBOX_TOKEN'));
     
     if (!mapboxToken) {
+      console.warn('Mapbox token not found in environment');
       return new Response(
         JSON.stringify({ 
           error: 'Mapbox token not configured',
@@ -28,6 +33,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    console.log('Mapbox token found, returning...');
     return new Response(
       JSON.stringify({ 
         token: mapboxToken,
