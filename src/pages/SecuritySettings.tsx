@@ -2,6 +2,7 @@ import { ProtectedPage } from "@/components/ProtectedPage";
 import { EnhancedAuthSecurity } from "@/components/EnhancedAuthSecurity";
 import { GDPRDataExport } from "@/components/GDPRDataExport";
 import { GDPRDataDeletion } from "@/components/GDPRDataDeletion";
+import { TwoFactorAuth } from "@/components/TwoFactorAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Settings,
   Shield,
@@ -40,6 +42,14 @@ interface GlobalSecuritySettings {
 
 const SecuritySettings = () => {
   const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
+  
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setUser(session.user);
+    });
+  }, []);
+  
   const [settings, setSettings] = useState<GlobalSecuritySettings>(() => {
     const saved = localStorage.getItem("global-security-settings");
     return saved
@@ -257,6 +267,16 @@ const SecuritySettings = () => {
 
           {/* Enhanced Auth Security */}
           <EnhancedAuthSecurity />
+
+          <Separator />
+
+          {/* Two-Factor Authentication */}
+          {user && (
+            <>
+              <Separator />
+              <TwoFactorAuth userId={user.id} userEmail={user.email || ''} />
+            </>
+          )}
 
           <Separator />
 

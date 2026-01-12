@@ -30,6 +30,7 @@ const ThreatInvestigation = lazy(() => import("./pages/ThreatInvestigation"));
 const SecuritySettings = lazy(() => import("./pages/SecuritySettings"));
 const GlobalTracking = lazy(() => import("./pages/GlobalTracking"));
 const NetworkResilience = lazy(() => import("./pages/NetworkResilience"));
+const AdvancedSecurity = lazy(() => import("./pages/AdvancedSecurity"));
 
 // Optimized QueryClient with caching and performance settings
 const queryClient = new QueryClient({
@@ -84,6 +85,7 @@ const App = () => (
             <Route path="/security-settings" element={<SecuritySettings />} />
             <Route path="/global-tracking" element={<GlobalTracking />} />
             <Route path="/network-resilience" element={<NetworkResilience />} />
+            <Route path="/advanced-security" element={<AdvancedSecurity />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
