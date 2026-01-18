@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
+import { useGeoLocation } from '@/hooks/useGeoLocation';
 import { toast } from 'sonner';
 import {
   Globe,
@@ -23,7 +24,8 @@ import {
   Activity,
   FileWarning,
   Bug,
-  Skull
+  Skull,
+  Loader2
 } from 'lucide-react';
 
 interface ThreatItem {
@@ -59,12 +61,16 @@ interface DomainCheck {
 export const RealTimeThreatIntelligence = () => {
   const [threats, setThreats] = useState<ThreatItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [ipLoading, setIpLoading] = useState(false);
+  const [domainLoading, setDomainLoading] = useState(false);
   const [ipInput, setIpInput] = useState('');
   const [domainInput, setDomainInput] = useState('');
   const [ipResult, setIpResult] = useState<IPReputation | null>(null);
   const [domainResult, setDomainResult] = useState<DomainCheck | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  
+  const { lookupIP, lookupDomain } = useGeoLocation();
 
   const fetchGlobalThreats = useCallback(async () => {
     setLoading(true);
@@ -88,55 +94,144 @@ export const RealTimeThreatIntelligence = () => {
     }
   }, []);
 
+  // Use real IPinfo.io API for IP reputation
   const checkIPReputation = async () => {
     if (!ipInput.trim()) {
       toast.error('Please enter an IP address');
       return;
     }
     
-    setLoading(true);
+    setIpLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('threat-intelligence', {
-        body: { type: 'ip_reputation', target: ipInput }
-      });
+      const result = await lookupIP(ipInput.trim());
 
-      if (error) throw error;
-
-      if (data?.success && data?.data) {
-        setIpResult({ ip: ipInput, ...data.data });
-        toast.success('IP reputation check complete');
+      if (result.success && result.data) {
+        const geoData = result.data;
+        
+        // Calculate reputation based on real IPinfo data
+        let reputationScore = 85; // Default good score
+        const associations: string[] = [];
+        let riskLevel = 'low';
+        let recommendedAction = 'Allow - No threats detected';
+        
+        // Use real VPN/Proxy/Tor detection
+        if (geoData.isTor) {
+          reputationScore -= 50;
+          associations.push('Tor Exit Node');
+          riskLevel = 'critical';
+          recommendedAction = 'Block - Tor exit node detected';
+        }
+        if (geoData.isProxy) {
+          reputationScore -= 30;
+          associations.push('Known Proxy');
+          riskLevel = riskLevel === 'low' ? 'high' : riskLevel;
+          recommendedAction = 'Monitor - Proxy detected';
+        }
+        if (geoData.isVpn) {
+          reputationScore -= 20;
+          associations.push('VPN Service');
+          riskLevel = riskLevel === 'low' ? 'medium' : riskLevel;
+          recommendedAction = 'Monitor - VPN usage detected';
+        }
+        if (geoData.isHosting) {
+          reputationScore -= 10;
+          associations.push('Hosting/Datacenter');
+        }
+        
+        // Add abuse info if available
+        if (geoData.abuse?.name) {
+          associations.push(`Abuse Contact: ${geoData.abuse.name}`);
+        }
+        
+        setIpResult({
+          ip: ipInput,
+          reputation_score: Math.max(0, reputationScore),
+          risk_level: riskLevel,
+          associations: associations.length > 0 ? associations : ['Clean - No known associations'],
+          country: geoData.country,
+          isp: geoData.isp,
+          recommended_action: recommendedAction
+        });
+        
+        toast.success(`IP reputation check complete: ${geoData.city}, ${geoData.country}`);
+      } else {
+        toast.error(result.error || 'Failed to check IP reputation');
       }
     } catch (error) {
       console.error('Error checking IP:', error);
       toast.error('Failed to check IP reputation');
     } finally {
-      setLoading(false);
+      setIpLoading(false);
     }
   };
 
+  // Use real WhoisXML API for domain check
   const checkDomain = async () => {
     if (!domainInput.trim()) {
       toast.error('Please enter a domain');
       return;
     }
     
-    setLoading(true);
+    setDomainLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('threat-intelligence', {
-        body: { type: 'domain_check', target: domainInput }
-      });
+      const result = await lookupDomain(domainInput.trim());
 
-      if (error) throw error;
-
-      if (data?.success && data?.data) {
-        setDomainResult({ domain: domainInput, ...data.data });
-        toast.success('Domain check complete');
+      if (result.success && result.data) {
+        const whoisData = result.data;
+        
+        // Calculate reputation based on real WHOIS data
+        let reputationScore = 80;
+        const phishingIndicators: string[] = [];
+        let riskLevel = 'low';
+        let recommendedAction = 'Safe - Domain appears legitimate';
+        
+        // Check domain age (newer domains are riskier)
+        if (whoisData.domainAge) {
+          const years = parseInt(whoisData.domainAge);
+          if (years < 1) {
+            reputationScore -= 30;
+            phishingIndicators.push('Domain less than 1 year old');
+            riskLevel = 'medium';
+          }
+        }
+        
+        // Check expiration
+        if (whoisData.expirationWarning) {
+          reputationScore -= 15;
+          phishingIndicators.push('Domain expires soon');
+        }
+        
+        // Check for privacy protection (common with malicious domains)
+        if (whoisData.registrant.organization === 'REDACTED FOR PRIVACY') {
+          phishingIndicators.push('WHOIS privacy enabled');
+        }
+        
+        // Set risk level
+        if (reputationScore < 50) {
+          riskLevel = 'high';
+          recommendedAction = 'Caution - Multiple risk indicators detected';
+        } else if (reputationScore < 70) {
+          riskLevel = 'medium';
+          recommendedAction = 'Monitor - Some risk indicators present';
+        }
+        
+        setDomainResult({
+          domain: domainInput,
+          reputation_score: reputationScore,
+          risk_level: riskLevel,
+          phishing_indicators: phishingIndicators.length > 0 ? phishingIndicators : ['No phishing indicators detected'],
+          recommended_action: recommendedAction
+        });
+        
+        toast.success(`Domain check complete: ${whoisData.registrar}`);
+      } else {
+        toast.error(result.error || 'Failed to check domain');
       }
     } catch (error) {
       console.error('Error checking domain:', error);
       toast.error('Failed to check domain');
     } finally {
-      setLoading(false);
+      setDomainLoading(false);
     }
   };
 
@@ -311,8 +406,12 @@ export const RealTimeThreatIntelligence = () => {
                   onChange={(e) => setIpInput(e.target.value)}
                   className="font-mono text-sm"
                 />
-                <Button onClick={checkIPReputation} disabled={loading}>
-                  <Search className="h-4 w-4 mr-1" />
+                <Button onClick={checkIPReputation} disabled={ipLoading}>
+                  {ipLoading ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4 mr-1" />
+                  )}
                   Check
                 </Button>
               </div>
@@ -376,8 +475,12 @@ export const RealTimeThreatIntelligence = () => {
                   onChange={(e) => setDomainInput(e.target.value)}
                   className="text-sm"
                 />
-                <Button onClick={checkDomain} disabled={loading}>
-                  <Eye className="h-4 w-4 mr-1" />
+                <Button onClick={checkDomain} disabled={domainLoading}>
+                  {domainLoading ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Eye className="h-4 w-4 mr-1" />
+                  )}
                   Analyze
                 </Button>
               </div>

@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface GeoLocationData {
   ip: string;
+  hostname?: string;
   country: string;
   countryCode: string;
   region: string;
@@ -21,6 +23,31 @@ export interface GeoLocationData {
   query: string;
   status: string;
   message?: string;
+  // Enhanced security fields from IPinfo
+  isVpn?: boolean;
+  isProxy?: boolean;
+  isTor?: boolean;
+  isHosting?: boolean;
+  privacy?: {
+    vpn: boolean;
+    proxy: boolean;
+    tor: boolean;
+    relay: boolean;
+    hosting: boolean;
+  } | null;
+  abuse?: {
+    address: string;
+    country: string;
+    email: string;
+    name: string;
+    network: string;
+    phone: string;
+  } | null;
+  company?: {
+    name: string;
+    domain: string;
+    type: string;
+  } | null;
 }
 
 export interface LocationLookupResult {
@@ -29,7 +56,43 @@ export interface LocationLookupResult {
   error: string | null;
 }
 
+export interface WhoisData {
+  domain: string;
+  registrar: string;
+  registrarId: string;
+  createdDate: string;
+  updatedDate: string;
+  expiresDate: string;
+  domainAge: string;
+  expirationWarning: boolean;
+  status: string;
+  registrant: {
+    organization: string;
+    country: string;
+    state: string;
+    name: string;
+  };
+  administrativeContact: {
+    organization: string;
+    country: string;
+    email: string;
+  };
+  technicalContact: {
+    organization: string;
+    email: string;
+  };
+  nameServers: string[];
+  available: boolean;
+}
+
+export interface WhoisLookupResult {
+  success: boolean;
+  data: WhoisData | null;
+  error: string | null;
+}
+
 const IP_GEOLOCATION_CACHE = new Map<string, GeoLocationData>();
+const WHOIS_CACHE = new Map<string, WhoisData>();
 
 export const useGeoLocation = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -46,59 +109,90 @@ export const useGeoLocation = () => {
     setIsLoading(true);
     
     try {
-      // Using ip-api.com free API (45 requests per minute)
-      const response = await fetch(`http://ip-api.com/json/${ipAddress}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      // Check if it's a private IP - use fallback for these
+      if (isPrivateIP(ipAddress)) {
+        const simulatedData = generateLocalNetworkLocation(ipAddress);
+        IP_GEOLOCATION_CACHE.set(ipAddress, simulatedData);
+        setLastLookup(simulatedData);
+        return { success: true, data: simulatedData, error: null };
       }
 
-      const data = await response.json();
-      
-      if (data.status === 'fail') {
-        // For private/reserved IPs, generate simulated location
-        if (isPrivateIP(ipAddress)) {
-          const simulatedData = generateSimulatedLocation(ipAddress);
-          IP_GEOLOCATION_CACHE.set(ipAddress, simulatedData);
-          setLastLookup(simulatedData);
-          return { success: true, data: simulatedData, error: null };
-        }
-        return { success: false, data: null, error: data.message || 'Lookup failed' };
+      // Call our edge function that uses IPinfo.io
+      const { data, error } = await supabase.functions.invoke('ip-geolocation', {
+        body: { ip: ipAddress }
+      });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Geolocation lookup failed');
       }
 
-      const geoData: GeoLocationData = {
-        ip: ipAddress,
-        country: data.country || 'Unknown',
-        countryCode: data.countryCode || 'XX',
-        region: data.region || '',
-        regionName: data.regionName || '',
-        city: data.city || 'Unknown',
-        zip: data.zip || '',
-        latitude: data.lat || 0,
-        longitude: data.lon || 0,
-        timezone: data.timezone || '',
-        isp: data.isp || 'Unknown ISP',
-        organization: data.org || '',
-        org: data.org || '',
-        as: data.as || '',
-        asn: data.as || '',
-        continent: getContinentFromCountryCode(data.countryCode || 'XX'),
-        continentCode: getContinentCodeFromCountryCode(data.countryCode || 'XX'),
-        query: data.query || ipAddress,
-        status: 'success',
-      };
+      if (!data?.success) {
+        throw new Error(data?.error || 'Geolocation lookup failed');
+      }
 
+      const geoData: GeoLocationData = data.data;
       IP_GEOLOCATION_CACHE.set(ipAddress, geoData);
       setLastLookup(geoData);
+      
+      console.log(`IP ${ipAddress} resolved to: ${geoData.city}, ${geoData.country}`);
       return { success: true, data: geoData, error: null };
+
     } catch (error: any) {
       console.error('IP lookup error:', error);
       
-      // For any error, generate simulated location
-      const simulatedData = generateSimulatedLocation(ipAddress);
-      IP_GEOLOCATION_CACHE.set(ipAddress, simulatedData);
-      setLastLookup(simulatedData);
-      return { success: true, data: simulatedData, error: null };
+      // Fallback to free API if edge function fails
+      try {
+        const fallbackData = await fallbackIPLookup(ipAddress);
+        if (fallbackData) {
+          IP_GEOLOCATION_CACHE.set(ipAddress, fallbackData);
+          setLastLookup(fallbackData);
+          return { success: true, data: fallbackData, error: null };
+        }
+      } catch (fallbackError) {
+        console.error('Fallback lookup also failed:', fallbackError);
+      }
+      
+      return { success: false, data: null, error: error.message || 'Lookup failed' };
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const lookupDomain = useCallback(async (domain: string): Promise<WhoisLookupResult> => {
+    // Clean domain
+    const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+    
+    // Check cache first
+    if (WHOIS_CACHE.has(cleanDomain)) {
+      return { success: true, data: WHOIS_CACHE.get(cleanDomain)!, error: null };
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('domain-whois', {
+        body: { domain: cleanDomain }
+      });
+
+      if (error) {
+        console.error('WHOIS edge function error:', error);
+        throw new Error(error.message || 'WHOIS lookup failed');
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'WHOIS lookup failed');
+      }
+
+      const whoisData: WhoisData = data.data;
+      WHOIS_CACHE.set(cleanDomain, whoisData);
+      
+      console.log(`Domain ${cleanDomain} WHOIS resolved`);
+      return { success: true, data: whoisData, error: null };
+
+    } catch (error: any) {
+      console.error('WHOIS lookup error:', error);
+      return { success: false, data: null, error: error.message || 'WHOIS lookup failed' };
     } finally {
       setIsLoading(false);
     }
@@ -113,9 +207,9 @@ export const useGeoLocation = () => {
       const result = await lookupIP(ip);
       results.set(ip, result);
       
-      // Rate limit: wait 25ms between requests (40 req/sec max)
+      // Rate limit: wait 100ms between requests for IPinfo
       if (i < ipAddresses.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 25));
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
     
@@ -159,11 +253,13 @@ export const useGeoLocation = () => {
 
   const clearCache = useCallback(() => {
     IP_GEOLOCATION_CACHE.clear();
+    WHOIS_CACHE.clear();
     setLastLookup(null);
   }, []);
 
   return {
     lookupIP,
+    lookupDomain,
     lookupMultipleIPs,
     getCurrentLocation,
     getDistanceBetweenPoints,
@@ -171,6 +267,7 @@ export const useGeoLocation = () => {
     isLoading,
     lastLookup,
     cacheSize: IP_GEOLOCATION_CACHE.size,
+    whoisCacheSize: WHOIS_CACHE.size,
   };
 };
 
@@ -191,47 +288,67 @@ function isPrivateIP(ip: string): boolean {
   return false;
 }
 
-function generateSimulatedLocation(ip: string): GeoLocationData {
-  // Generate consistent location based on IP for simulation
-  const parts = ip.split('.').map(Number);
-  const hash = parts.reduce((a, b) => a + b, 0);
-  
-  const locations = [
-    { city: 'New York', country: 'United States', countryCode: 'US', region: 'NY', lat: 40.7128, lon: -74.0060, timezone: 'America/New_York', isp: 'Verizon Business', continent: 'North America', continentCode: 'NA' },
-    { city: 'London', country: 'United Kingdom', countryCode: 'GB', region: 'ENG', lat: 51.5074, lon: -0.1278, timezone: 'Europe/London', isp: 'British Telecom', continent: 'Europe', continentCode: 'EU' },
-    { city: 'Tokyo', country: 'Japan', countryCode: 'JP', region: '13', lat: 35.6762, lon: 139.6503, timezone: 'Asia/Tokyo', isp: 'NTT Communications', continent: 'Asia', continentCode: 'AS' },
-    { city: 'Singapore', country: 'Singapore', countryCode: 'SG', region: '01', lat: 1.3521, lon: 103.8198, timezone: 'Asia/Singapore', isp: 'SingTel', continent: 'Asia', continentCode: 'AS' },
-    { city: 'Frankfurt', country: 'Germany', countryCode: 'DE', region: 'HE', lat: 50.1109, lon: 8.6821, timezone: 'Europe/Berlin', isp: 'Deutsche Telekom', continent: 'Europe', continentCode: 'EU' },
-    { city: 'Sydney', country: 'Australia', countryCode: 'AU', region: 'NSW', lat: -33.8688, lon: 151.2093, timezone: 'Australia/Sydney', isp: 'Telstra', continent: 'Oceania', continentCode: 'OC' },
-    { city: 'São Paulo', country: 'Brazil', countryCode: 'BR', region: 'SP', lat: -23.5505, lon: -46.6333, timezone: 'America/Sao_Paulo', isp: 'Telefonica Brasil', continent: 'South America', continentCode: 'SA' },
-    { city: 'Mumbai', country: 'India', countryCode: 'IN', region: 'MH', lat: 19.0760, lon: 72.8777, timezone: 'Asia/Kolkata', isp: 'Reliance Jio', continent: 'Asia', continentCode: 'AS' },
-  ];
-  
-  const loc = locations[hash % locations.length];
-  const org = isPrivateIP(ip) ? 'Private Network' : 'Enterprise Network';
-  const asn = `AS${10000 + (hash % 50000)}`;
-  
+function generateLocalNetworkLocation(ip: string): GeoLocationData {
   return {
     ip,
-    country: loc.country,
-    countryCode: loc.countryCode,
-    region: loc.region,
-    regionName: loc.region,
-    city: loc.city,
+    country: 'Local Network',
+    countryCode: 'LN',
+    region: 'Private',
+    regionName: 'Private Network',
+    city: 'Local',
     zip: '',
-    latitude: loc.lat + (Math.random() - 0.5) * 0.1,
-    longitude: loc.lon + (Math.random() - 0.5) * 0.1,
-    timezone: loc.timezone,
-    isp: loc.isp,
-    organization: org,
-    org: org,
-    as: asn,
-    asn: asn,
-    continent: loc.continent,
-    continentCode: loc.continentCode,
+    latitude: 0,
+    longitude: 0,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    isp: 'Private Network',
+    organization: 'Local Network',
+    org: 'Local Network',
+    as: 'AS0',
+    asn: 'AS0',
+    continent: 'Private',
+    continentCode: 'XX',
     query: ip,
     status: 'success',
+    message: 'Private IP address - location not available',
   };
+}
+
+async function fallbackIPLookup(ipAddress: string): Promise<GeoLocationData | null> {
+  try {
+    // Use ip-api.com as fallback
+    const response = await fetch(
+      `http://ip-api.com/json/${ipAddress}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query`
+    );
+    
+    if (!response.ok) return null;
+    
+    const data = await response.json();
+    if (data.status === 'fail') return null;
+
+    return {
+      ip: ipAddress,
+      country: data.country || 'Unknown',
+      countryCode: data.countryCode || 'XX',
+      region: data.region || '',
+      regionName: data.regionName || '',
+      city: data.city || 'Unknown',
+      zip: data.zip || '',
+      latitude: data.lat || 0,
+      longitude: data.lon || 0,
+      timezone: data.timezone || '',
+      isp: data.isp || 'Unknown ISP',
+      organization: data.org || '',
+      org: data.org || '',
+      as: data.as || '',
+      asn: data.as || '',
+      continent: getContinentFromCountryCode(data.countryCode || 'XX'),
+      continentCode: getContinentCodeFromCountryCode(data.countryCode || 'XX'),
+      query: data.query || ipAddress,
+      status: 'success',
+    };
+  } catch {
+    return null;
+  }
 }
 
 function getContinentFromCountryCode(countryCode: string): string {
