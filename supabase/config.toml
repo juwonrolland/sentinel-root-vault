@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.get-mapbox-token]
 verify_jwt = false
+
+[functions.ip-geolocation]
+verify_jwt = false
+
+[functions.domain-whois]
+verify_jwt = false

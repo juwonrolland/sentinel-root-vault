@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Globe, Shield, Radar, Network, Target, Lock, Activity, Server, AlertTriangle } from "lucide-react";
 import { RoleBadge, RoleGuard } from "@/components/RoleBasedAccess";
 import { GlobalIntelligenceTracker } from "@/components/GlobalIntelligenceTracker";
+import { DomainIntelligence } from "@/components/DomainIntelligence";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -143,6 +144,11 @@ const GlobalTracking = () => {
 
             {/* Main Tracker Component */}
             <GlobalIntelligenceTracker />
+
+            {/* Domain Intelligence - Real WHOIS Lookup */}
+            <div className="mt-6">
+              <DomainIntelligence />
+            </div>
 
             {/* Capabilities Section */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">

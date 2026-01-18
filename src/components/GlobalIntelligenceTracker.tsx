@@ -377,7 +377,7 @@ export const GlobalIntelligenceTracker = ({ className }: GlobalIntelligenceTrack
     };
   }, [drawWorldMap]);
 
-  // Handle search
+  // Handle search - using real IPinfo.io API
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
 
@@ -396,8 +396,51 @@ export const GlobalIntelligenceTracker = ({ className }: GlobalIntelligenceTrack
       setScanProgress(100);
 
       if (result.success && result.data) {
-        const riskScore = Math.floor(Math.random() * 100);
-        const status = riskScore > 80 ? 'malicious' : riskScore > 50 ? 'suspicious' : riskScore > 20 ? 'unknown' : 'clean';
+        // Calculate risk based on real data from IPinfo
+        let riskScore = 20; // Base score
+        let status: 'clean' | 'suspicious' | 'malicious' | 'unknown' = 'clean';
+        const threatTypes: string[] = [];
+        
+        // Use real VPN/Proxy/Tor detection from IPinfo
+        if (result.data.isVpn) {
+          riskScore += 30;
+          threatTypes.push('VPN/Proxy');
+        }
+        if (result.data.isProxy) {
+          riskScore += 25;
+          threatTypes.push('Proxy');
+        }
+        if (result.data.isTor) {
+          riskScore += 50;
+          threatTypes.push('Tor Exit Node');
+        }
+        if (result.data.isHosting) {
+          riskScore += 15;
+          threatTypes.push('Hosting Provider');
+        }
+        
+        // Determine status based on real indicators
+        if (result.data.isTor || riskScore > 70) {
+          status = 'malicious';
+        } else if (result.data.isVpn || result.data.isProxy || riskScore > 40) {
+          status = 'suspicious';
+        } else if (riskScore > 25) {
+          status = 'unknown';
+        } else {
+          status = 'clean';
+        }
+        
+        // Determine category from real data
+        let category = 'Unknown';
+        if (result.data.company?.type) {
+          category = result.data.company.type;
+        } else if (result.data.isHosting) {
+          category = 'Hosting Provider';
+        } else if (result.data.isVpn) {
+          category = 'VPN/Proxy';
+        } else {
+          category = 'ISP';
+        }
         
         const newEntity: TrackedEntity = {
           id: `search-${Date.now()}`,
@@ -405,15 +448,15 @@ export const GlobalIntelligenceTracker = ({ className }: GlobalIntelligenceTrack
           value: searchQuery,
           location: result.data,
           status,
-          riskScore,
-          threatTypes: status === 'malicious' ? THREAT_TYPES.slice(0, 2) : [],
+          riskScore: Math.min(riskScore, 100),
+          threatTypes,
           firstSeen: new Date(),
           lastSeen: new Date(),
           hitCount: 1,
           reputation: {
-            score: 100 - riskScore,
-            category: REPUTATION_CATEGORIES[Math.floor(Math.random() * REPUTATION_CATEGORIES.length)],
-            sources: ['VirusTotal', 'AbuseIPDB'],
+            score: Math.max(0, 100 - riskScore),
+            category,
+            sources: ['IPinfo.io', 'Internal Analysis'],
           },
         };
 
@@ -421,11 +464,18 @@ export const GlobalIntelligenceTracker = ({ className }: GlobalIntelligenceTrack
         setSelectedEntity(newEntity);
         
         toast({
-          title: "Entity Located",
-          description: `${searchQuery} traced to ${result.data.city}, ${result.data.country}`,
+          title: "IP Located via IPinfo.io",
+          description: `${searchQuery} → ${result.data.city}, ${result.data.country} (${result.data.isp})`,
+        });
+      } else {
+        toast({
+          title: "Lookup Failed",
+          description: result.error || "Could not resolve the IP address",
+          variant: "destructive",
         });
       }
     } catch (error) {
+      clearInterval(progressInterval);
       toast({
         title: "Lookup Failed",
         description: "Could not resolve the target",
