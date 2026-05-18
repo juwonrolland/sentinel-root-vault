@@ -58,6 +58,41 @@ export const useBiometricAuth = () => {
     return bytes.buffer;
   };
 
+  // Derive an AES-GCM key from the credentialId (stable per-device secret)
+  const deriveKey = async (credentialId: string): Promise<CryptoKey> => {
+    const enc = new TextEncoder();
+    const base = await crypto.subtle.importKey(
+      'raw', enc.encode(credentialId), 'PBKDF2', false, ['deriveKey']
+    );
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: enc.encode('biometric-meta-v1'), iterations: 100_000, hash: 'SHA-256' },
+      base,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  };
+
+  const encryptMeta = async (credentialId: string, payload: { userId: string; email: string }) => {
+    const key = await deriveKey(credentialId);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const data = new TextEncoder().encode(JSON.stringify(payload));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
+    return { iv: arrayBufferToBase64(iv.buffer), ct: arrayBufferToBase64(ct) };
+  };
+
+  const decryptMeta = async (
+    credentialId: string,
+    blob: { iv: string; ct: string }
+  ): Promise<{ userId: string; email: string }> => {
+    const key = await deriveKey(credentialId);
+    const iv = new Uint8Array(base64ToArrayBuffer(blob.iv));
+    const pt = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv }, key, base64ToArrayBuffer(blob.ct)
+    );
+    return JSON.parse(new TextDecoder().decode(pt));
+  };
+
   const enrollBiometric = useCallback(async (email: string, userId: string) => {
     if (!isSupported) {
       toast({
@@ -109,16 +144,20 @@ export const useBiometricAuth = () => {
       }
 
       const response = credential.response as AuthenticatorAttestationResponse;
-      
-      // Store credential locally
-      const biometricData: BiometricCredential = {
-        credentialId: arrayBufferToBase64(credential.rawId),
-        publicKey: arrayBufferToBase64(response.getPublicKey() || new ArrayBuffer(0)),
-        userId,
-        email,
-      };
 
-      localStorage.setItem('biometric_credential', JSON.stringify(biometricData));
+      const credentialId = arrayBufferToBase64(credential.rawId);
+      const publicKey = arrayBufferToBase64(response.getPublicKey() || new ArrayBuffer(0));
+
+      // Store only public WebAuthn data in localStorage
+      localStorage.setItem(
+        'biometric_credential',
+        JSON.stringify({ credentialId, publicKey })
+      );
+
+      // Encrypt PII (userId/email) at rest using key derived from credentialId
+      const metaBlob = await encryptMeta(credentialId, { userId, email });
+      localStorage.setItem('biometric_meta', JSON.stringify(metaBlob));
+
       setIsEnrolled(true);
 
       toast({
@@ -149,11 +188,12 @@ export const useBiometricAuth = () => {
       setIsAuthenticating(true);
 
       const savedCredential = localStorage.getItem('biometric_credential');
-      if (!savedCredential) {
+      const savedMeta = localStorage.getItem('biometric_meta');
+      if (!savedCredential || !savedMeta) {
         throw new Error('No biometric credential found');
       }
 
-      const biometricData: BiometricCredential = JSON.parse(savedCredential);
+      const publicData: { credentialId: string; publicKey: string } = JSON.parse(savedCredential);
 
       // Generate challenge
       const challenge = new Uint8Array(32);
@@ -163,7 +203,7 @@ export const useBiometricAuth = () => {
         challenge,
         allowCredentials: [
           {
-            id: base64ToArrayBuffer(biometricData.credentialId),
+            id: base64ToArrayBuffer(publicData.credentialId),
             type: 'public-key',
             transports: ['internal'],
           },
@@ -180,8 +220,9 @@ export const useBiometricAuth = () => {
         throw new Error('Biometric authentication failed');
       }
 
-      // Return the stored email for sign-in
-      return biometricData;
+      // Decrypt PII only after successful biometric verification
+      const meta = await decryptMeta(publicData.credentialId, JSON.parse(savedMeta));
+      return { ...publicData, ...meta } as BiometricCredential;
     } catch (error: any) {
       console.error('Biometric authentication error:', error);
       
@@ -206,6 +247,7 @@ export const useBiometricAuth = () => {
 
   const removeBiometric = useCallback(() => {
     localStorage.removeItem('biometric_credential');
+    localStorage.removeItem('biometric_meta');
     setIsEnrolled(false);
     toast({
       title: 'Biometric Removed',
