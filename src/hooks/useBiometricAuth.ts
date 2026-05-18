@@ -188,11 +188,12 @@ export const useBiometricAuth = () => {
       setIsAuthenticating(true);
 
       const savedCredential = localStorage.getItem('biometric_credential');
-      if (!savedCredential) {
+      const savedMeta = localStorage.getItem('biometric_meta');
+      if (!savedCredential || !savedMeta) {
         throw new Error('No biometric credential found');
       }
 
-      const biometricData: BiometricCredential = JSON.parse(savedCredential);
+      const publicData: { credentialId: string; publicKey: string } = JSON.parse(savedCredential);
 
       // Generate challenge
       const challenge = new Uint8Array(32);
@@ -202,7 +203,7 @@ export const useBiometricAuth = () => {
         challenge,
         allowCredentials: [
           {
-            id: base64ToArrayBuffer(biometricData.credentialId),
+            id: base64ToArrayBuffer(publicData.credentialId),
             type: 'public-key',
             transports: ['internal'],
           },
@@ -219,8 +220,9 @@ export const useBiometricAuth = () => {
         throw new Error('Biometric authentication failed');
       }
 
-      // Return the stored email for sign-in
-      return biometricData;
+      // Decrypt PII only after successful biometric verification
+      const meta = await decryptMeta(publicData.credentialId, JSON.parse(savedMeta));
+      return { ...publicData, ...meta } as BiometricCredential;
     } catch (error: any) {
       console.error('Biometric authentication error:', error);
       
@@ -245,6 +247,7 @@ export const useBiometricAuth = () => {
 
   const removeBiometric = useCallback(() => {
     localStorage.removeItem('biometric_credential');
+    localStorage.removeItem('biometric_meta');
     setIsEnrolled(false);
     toast({
       title: 'Biometric Removed',
